@@ -1,9 +1,11 @@
 #version 330 core
 
-in vec3 vNormalCoords;
+in vec2 v_UV;
 
-out vec3 color;
+uniform sampler2D Diffuse;
+
+out vec4 color;
 
 void main(){
-    color = abs(vNormalCoords);
+    color = texture(Diffuse, v_UV);
 }

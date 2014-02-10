@@ -88,6 +88,7 @@
     <ClCompile Include="src\GLProgram.cpp" />
     <ClCompile Include="src\GLTexture.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Plane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Cube.h" />
@@ -95,6 +96,7 @@
     <ClInclude Include="include\GLProgram.h" />
     <ClInclude Include="include\GLTexture.h" />
     <ClInclude Include="include\MatrixStack.h" />
+    <ClInclude Include="include\Plane.h" />
     <ClInclude Include="include\Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

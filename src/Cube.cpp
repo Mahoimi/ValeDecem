@@ -9,44 +9,44 @@ void Cube::initVertices(){
     // Bottom face
     m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 0.f, 0.f)); 
     m_vertices.emplace_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 1.f/3.f, 0.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 1.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 1.f/3.f, 0.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 0.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 0.f, 0.f));
 
     // Upper face
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 2.f/3.f, 0.f));
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 2.f/3.f, 1.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 1.f, 0.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 1.f, 0.f));
 
     // Left face
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, -1.f, 0.f, 0.f, 1.f/3.f, 0.f));
-    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, -0.5f, -1.f, 0.f, 0.f, 1.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, -1.f, 0.f, 0.f, 2.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, -1.f, 0.f, 0.f, 2.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, -1.f, 0.f, 0.f, 2.f/3.f, 0.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, -1.f, 0.f, 0.f, 0.f, 0.f));
+    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, -0.5f, -1.f, 0.f, 0.f, 0.f, 1.f));
+    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, -1.f, 0.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, -1.f, 0.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, -1.f, 0.f, 0.f, 1.f, 0.f));
 
     // Right face
-    m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f/3.f, 0.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 1.f, 0.f, 0.f, 2.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 1.f, 0.f, 0.f, 2.f/3.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, 0.5f, -0.5f, 1.f, 0.f, 0.f, 2.f/3.f, 0.f));
+    m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 1.f, 0.f, 0.f, 0.f, 0.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 1.f, 0.f, 0.f, 0.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 1.f, 0.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 1.f, 0.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, 0.5f, -0.5f, 1.f, 0.f, 0.f, 1.f, 0.f));
 
     // Front face
-    m_vertices.push_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f/3.f, 0.f));
-    m_vertices.push_back(Vertex(-0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 2.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 2.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 2.f/3.f, 0.f));
+    m_vertices.push_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 0.f));
+    m_vertices.push_back(Vertex(-0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.f));
+    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f, 1.f));
+    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f, 1.f));
+    m_vertices.push_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f, 0.f));
 
     // Back face
-    m_vertices.push_back(Vertex(0.5f, 0.5f, -0.5f, 0.f, 0.f, -1.f, 1.f/3.f, 0.f));
-    m_vertices.push_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 1.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 2.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 2.f/3.f, 1.f));
-    m_vertices.push_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 0.f, -1.f, 2.f/3.f, 0.f));
+    m_vertices.push_back(Vertex(0.5f, 0.5f, -0.5f, 0.f, 0.f, -1.f, 0.f, 0.f));
+    m_vertices.push_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 0.f, 1.f));
+    m_vertices.push_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 1.f, 1.f));
+    m_vertices.push_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 1.f, 1.f));
+    m_vertices.push_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 0.f, -1.f, 1.f, 0.f));
 }
 
 void Cube::init(){
