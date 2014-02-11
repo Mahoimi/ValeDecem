@@ -9,13 +9,13 @@ void Cube::initVertices(){
     // Bottom face
     m_vertices.emplace_back(Vertex(-0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 0.f, 0.f)); 
     m_vertices.emplace_back(Vertex(-0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 0.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.f, 1.f));
-    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 0.f, 0.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 1.f, 0.f));
 
     // Upper face
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 1.f, 0.f));
-    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 0.f));
+    m_vertices.emplace_back(Vertex(-0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 0.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 1.f, 1.f));
     m_vertices.emplace_back(Vertex(0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 1.f, 0.f));

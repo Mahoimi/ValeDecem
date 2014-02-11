@@ -4,8 +4,8 @@ in vec2 v_UV;
 
 uniform sampler2D Diffuse;
 
-out vec4 color;
+out vec4 Color;
 
 void main(){
-    color = texture(Diffuse, v_UV);
+    Color = texture(Diffuse, v_UV);
 }

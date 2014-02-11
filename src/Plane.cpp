@@ -2,15 +2,14 @@
 
 void Plane::init(){
 	// Load vertex data
-	m_vertices.push_back(Vertex(-0.5f, 0.5f, 0.0f, 0.f, 0.f, 1.f, 0.f, 0.f));
-    m_vertices.push_back(Vertex(-0.5f, -0.5f, 0.0f, 0.f, 0.f, 1.f, 0.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.0f, 0.f, 0.f, 1.f, 1.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, -0.5f, 0.0f, 0.f, 0.f, 1.f, 1.f, 1.f));
-    m_vertices.push_back(Vertex(0.5f, 0.5f, 0.0f, 0.f, 0.f, 1.f, 1.f, 0.f));
+    m_vertices.push_back(Vertex(-1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, 0.f, 1.f));
+    m_vertices.push_back(Vertex(1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, 1.f, 1.f));
+	m_vertices.push_back(Vertex(-1.f, 1.f, 0.0f, 0.f, 0.f, 1.f, 0.f, 0.f));
+    m_vertices.push_back(Vertex(1.f, 1.f, 0.0f, 0.f, 0.f, 1.f, 1.f, 0.f));
 
 	// Index buffer data
 	unsigned int index[] = {
-		0, 1, 2, 3, 4, 0
+		0, 1, 2, 2, 1, 3
 	};
 
 	// Number of duplicated vertex (= size of index)

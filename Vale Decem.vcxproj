@@ -85,18 +85,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Cube.cpp" />
+    <ClCompile Include="src\GBuffer.cpp" />
     <ClCompile Include="src\GLProgram.cpp" />
     <ClCompile Include="src\GLTexture.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Plane.cpp" />
+    <ClCompile Include="src\Project.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Cube.h" />
     <ClInclude Include="include\FreeFlyCamera.h" />
+    <ClInclude Include="include\GBuffer.h" />
     <ClInclude Include="include\GLProgram.h" />
     <ClInclude Include="include\GLTexture.h" />
     <ClInclude Include="include\MatrixStack.h" />
     <ClInclude Include="include\Plane.h" />
+    <ClInclude Include="include\Project.h" />
     <ClInclude Include="include\Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
