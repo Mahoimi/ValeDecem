@@ -9,7 +9,6 @@
 #include <Cube.h>
 #include <Plane.h>
 #include <GLProgram.h>
-#include <MatrixStack.h>
 #include <FreeFlyCamera.h>
 #include <GLTexture.h>
 #include <GBuffer.h>
@@ -20,14 +19,25 @@ private:
 
 	Cube m_cube;
 	Plane m_plane;
-	GLProgram m_program;
 	GLTexture m_diffuseTexture;
-	MatrixStack m_stack;
 	FreeFlyCamera m_camera;
 	GBuffer m_gbuffer;
 
-	GLuint m_MVPLocation;
-	GLuint m_DiffuseLocation;
+	struct GBufferPass {
+		GLuint m_modelLocation;
+		GLuint m_viewLocation;
+		GLuint m_projectionLocation;
+		GLuint m_diffuseLocation;
+		GLuint m_specularLocation;
+		GLProgram m_program;
+
+		GBufferPass(){}
+	};
+	GBufferPass m_gbufferPass;
+
+	glm::mat4 m_modelMatrix;
+	glm::mat4 m_viewMatrix;
+	glm::mat4 m_projectionMatrix;
 
 	sf::Vector2i m_mousePosition;
 	sf::Vector2i m_prevMousePosition;

@@ -1,6 +1,7 @@
 #include <Project.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 void Project::init(){
@@ -14,15 +15,17 @@ void Project::init(){
     }
 
 	// Set projection matrix
-	m_stack.set(glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 100.f));
+	m_projectionMatrix = glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 100.f);
 
 	// Load Shaders
-	m_program.load("./shaders/simple.vs.glsl", "./shaders/simple.fs.glsl");
-	m_program.use();
+	m_gbufferPass.m_program.load("./shaders/simple.vs.glsl", "./shaders/simple.fs.glsl");
 
 	// Set uniform location
-	m_MVPLocation = m_program.getUniformLocation("MVP");
-	m_DiffuseLocation = m_program.getUniformLocation("Diffuse");
+	m_gbufferPass.m_modelLocation = m_gbufferPass.m_program.getUniformLocation("Model");
+	m_gbufferPass.m_viewLocation = m_gbufferPass.m_program.getUniformLocation("View");
+	m_gbufferPass.m_projectionLocation = m_gbufferPass.m_program.getUniformLocation("Projection");
+	m_gbufferPass.m_diffuseLocation = m_gbufferPass.m_program.getUniformLocation("Diffuse");
+	m_gbufferPass.m_specularLocation = m_gbufferPass.m_program.getUniformLocation("Specular");
 
 	// Load texture
 	m_diffuseTexture.load("./assets/textures/spnza_bricks_a_diff.tga");
@@ -67,51 +70,49 @@ void Project::getInput(){
 }
 
 void Project::firstPass(){
+	m_gbufferPass.m_program.use();
+
+	// Reset model matrix
+	m_modelMatrix = glm::mat4(1.f);
+	m_viewMatrix = m_camera.getViewMatrix();
+
 	// Enable Depth test
 	glEnable(GL_DEPTH_TEST);
 
 	// Set viewport to all the window
 	glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
-	// Save current matrix of the stack
-	m_stack.push();
+	// Send uniform data
+	glUniform1i(m_gbufferPass.m_diffuseLocation, 0);
+	glUniformMatrix4fv(m_gbufferPass.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+	glUniformMatrix4fv(m_gbufferPass.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+	glUniformMatrix4fv(m_gbufferPass.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-		// Multiply Projection and View matrices
-		m_stack.mult(m_camera.getViewMatrix());
+	// Bind texture
+	m_diffuseTexture.bind(GL_TEXTURE0);
+
+	// Draw
+	m_cube.render();
+
+	// Reset model matrix
+	m_modelMatrix = glm::mat4(1.f);
+
+	// Linear transformations
+	m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(50));
+	m_modelMatrix = glm::rotate(m_modelMatrix, 90.f, glm::vec3(1, 0, 0));
+	m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, 1.f/50.f));
 		
-		// Send uniform data
-		glUniform1i(m_DiffuseLocation, 0);
-		glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, glm::value_ptr(m_stack.top()));
+	// Send uniform data
+	glUniform1i(m_gbufferPass.m_diffuseLocation, 0);
+	glUniformMatrix4fv(m_gbufferPass.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+	glUniformMatrix4fv(m_gbufferPass.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+	glUniformMatrix4fv(m_gbufferPass.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-		// Bind texture
-		m_diffuseTexture.bind(GL_TEXTURE0);
+	// Bind texture
+	m_diffuseTexture.bind(GL_TEXTURE0);
 
-		// Draw
-		m_cube.render();
-
-		// Save current matrix of the stack
-		m_stack.push();
-
-			// Linear transformations
-			m_stack.scale(glm::vec3(50));
-			m_stack.rotate(90, glm::vec3(1, 0, 0));
-			m_stack.translate(glm::vec3(0, 0, 1.f/50));
-		
-			// Send uniform data
-			glUniform1i(m_DiffuseLocation, 0);
-			glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, glm::value_ptr(m_stack.top()));
-
-			// Bind texture
-			m_diffuseTexture.bind(GL_TEXTURE0);
-
-			// Draw
-			m_plane.render();
-
-		// Reset stack
-		m_stack.pop();
-
-	// Reset stack
-	m_stack.pop();
+	// Draw
+	m_plane.render();
 }
 
 void Project::run(){
@@ -149,6 +150,8 @@ void Project::run(){
 		// Use the textures in the gbuffer to calculate the illumination
 
 		// Debugging windows to see what's inside the gbuffer
+
+		// GUI
 
         // end the current frame (internally swaps the front and back buffers)
         m_window.display();

@@ -98,10 +98,17 @@
     <ClInclude Include="include\GBuffer.h" />
     <ClInclude Include="include\GLProgram.h" />
     <ClInclude Include="include\GLTexture.h" />
-    <ClInclude Include="include\MatrixStack.h" />
     <ClInclude Include="include\Plane.h" />
     <ClInclude Include="include\Project.h" />
     <ClInclude Include="include\Vertex.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\blit.fs.glsl" />
+    <None Include="shaders\blit.vs.glsl" />
+    <None Include="shaders\gbuffer.fs.glsl" />
+    <None Include="shaders\gbuffer.vs.glsl" />
+    <None Include="shaders\simple.fs.glsl" />
+    <None Include="shaders\simple.vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{9c3845c0-7177-460e-9d12-0c2a3c3abf72}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -47,9 +50,6 @@
     <ClInclude Include="include\GLTexture.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="include\MatrixStack.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="include\Cube.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -65,5 +65,25 @@
     <ClInclude Include="include\Project.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\blit.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\blit.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\simple.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\simple.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\gbuffer.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\gbuffer.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
