@@ -17,7 +17,6 @@ public:
 	GBuffer(){}
 	void init(unsigned int width, unsigned int height);
 	void bindFramebuffer() const;
-	void bindTextures() const;
 	const GLuint& getTexture(unsigned int index) const;
 	~GBuffer();
 };

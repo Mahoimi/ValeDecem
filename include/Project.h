@@ -18,13 +18,14 @@ private:
 	sf::Window m_window;
 
 	Cube m_cube;
-	Plane m_plane;
+	Plane m_floorPlane;
+	Plane m_blitPlane;
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
 	FreeFlyCamera m_camera;
 	GBuffer m_gbuffer;
 
-	struct GBufferPass {
+	struct GBufferGLSL {
 		GLuint m_modelLocation;
 		GLuint m_viewLocation;
 		GLuint m_projectionLocation;
@@ -32,20 +33,35 @@ private:
 		GLuint m_specularLocation;
 		GLProgram m_program;
 
-		GBufferPass(){}
+		GBufferGLSL(){}
 	};
-	GBufferPass m_gbufferPass;
+	GBufferGLSL m_gbufferGLSL;
 
-	struct BlitPass {
+	struct BlitGLSL {
 		GLuint m_modelLocation;
 		GLuint m_viewLocation;
 		GLuint m_projectionLocation;
 		GLuint m_textureLocation;
 		GLProgram m_program;
 
-		BlitPass(){}
+		BlitGLSL(){}
 	};
-	BlitPass m_blitPass;
+	BlitGLSL m_blitGLSL;
+
+	struct ShadingGLSL {
+		GLuint m_inverseViewProjectionLocation;
+		GLuint m_lightPositionLocation;
+		GLuint m_lightColorLocation;
+		GLuint m_lightIntensityLocation;
+		GLuint m_cameraPositionLocation;
+		GLuint m_materialLocation;
+		GLuint m_normalLocation;
+		GLuint m_depthLocation;
+		GLProgram m_program;
+
+		ShadingGLSL(){}
+	};
+	ShadingGLSL m_shadingGLSL;
 
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
@@ -55,8 +71,8 @@ private:
 	sf::Vector2i m_prevMousePosition;
 
 	void getInput();
-	void firstPass();
-	void secondPass();
+	void gBufferPass();
+	void shadingPass();
 	void blitPass();
 
 public:

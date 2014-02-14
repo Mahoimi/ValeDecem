@@ -14,6 +14,6 @@ out vec2 v_UV;
 void main(void)
 {	
 	gl_Position = Projection * View * Model * vec4(Position, 1.0);
-	v_Normal = vec3(Model * vec4(Normal, 1.0));
+	v_Normal = (Model * vec4(Normal, 0.0)).xyz;
 	v_UV = UV;
 }

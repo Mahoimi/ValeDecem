@@ -21,7 +21,7 @@ private:
 
 public:
 	Plane(){}
-	void init();
+	void init(float textureRepeat);
     void render() const;
 	~Plane();
 };

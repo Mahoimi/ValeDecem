@@ -129,6 +129,14 @@ class FreeFlyCamera {
             return glm::lookAt(m_Position, m_Position + m_FrontVector, m_UpVector);
         }
 
+		/*!
+            * \brief getPosition
+            * \return the position in the 3D scene of the camera
+            */
+		inline const glm::vec3& getPosition() const{
+			return m_Position;
+        }
+
         /*!
             * \brief toString
             *

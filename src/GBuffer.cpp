@@ -9,8 +9,8 @@ void GBuffer::init(unsigned int width, unsigned int height){
 	glBindTexture(GL_TEXTURE_2D,m_textures[0]);
 
 	// Define the texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 	// Define the filters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -22,8 +22,8 @@ void GBuffer::init(unsigned int width, unsigned int height){
     glBindTexture(GL_TEXTURE_2D, m_textures[1]);
 
 	// Define the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 	// Define the filters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -70,14 +70,6 @@ void GBuffer::bindFramebuffer() const {
 
 	// Specify how many buffers we use
 	glDrawBuffers(2, m_drawbuffers);
-}
-
-void GBuffer::bindTextures() const {
-	glActiveTexture(m_drawbuffers[0]);
-	glBindTexture(GL_TEXTURE_2D, m_textures[0]);
-
-	glActiveTexture(m_drawbuffers[1]);
-	glBindTexture(GL_TEXTURE_2D, m_textures[1]);
 }
 
 const GLuint& GBuffer::getTexture(unsigned int index) const {

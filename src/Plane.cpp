@@ -1,11 +1,11 @@
 #include <Plane.h>
 
-void Plane::init(){
+void Plane::init(float textureRepeat){
 	// Load vertex data
-    m_vertices.push_back(Vertex(-1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, 0.f, 1.f));
-    m_vertices.push_back(Vertex(1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, 1.f, 1.f));
+    m_vertices.push_back(Vertex(-1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, 0.f, textureRepeat));
+    m_vertices.push_back(Vertex(1.f, -1.f, 0.0f, 0.f, 0.f, 1.f, textureRepeat, textureRepeat));
 	m_vertices.push_back(Vertex(-1.f, 1.f, 0.0f, 0.f, 0.f, 1.f, 0.f, 0.f));
-    m_vertices.push_back(Vertex(1.f, 1.f, 0.0f, 0.f, 0.f, 1.f, 1.f, 0.f));
+    m_vertices.push_back(Vertex(1.f, 1.f, 0.0f, 0.f, 0.f, 1.f, textureRepeat, 0.f));
 
 	// Index buffer data
 	unsigned int index[] = {
