@@ -18,7 +18,8 @@ void Project::init(){
 	m_projectionMatrix = glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 100.f);
 
 	// Load Shaders
-	m_gbufferPass.m_program.load("./shaders/simple.vs.glsl", "./shaders/simple.fs.glsl");
+	m_gbufferPass.m_program.load("./shaders/gbuffer.vs.glsl", "./shaders/gbuffer.fs.glsl");
+	m_blitPass.m_program.load("./shaders/blit.vs.glsl", "./shaders/blit.fs.glsl");
 
 	// Set uniform location
 	m_gbufferPass.m_modelLocation = m_gbufferPass.m_program.getUniformLocation("Model");
@@ -27,8 +28,14 @@ void Project::init(){
 	m_gbufferPass.m_diffuseLocation = m_gbufferPass.m_program.getUniformLocation("Diffuse");
 	m_gbufferPass.m_specularLocation = m_gbufferPass.m_program.getUniformLocation("Specular");
 
+	m_blitPass.m_modelLocation = m_blitPass.m_program.getUniformLocation("Model");
+	m_blitPass.m_viewLocation = m_blitPass.m_program.getUniformLocation("View");
+	m_blitPass.m_projectionLocation = m_blitPass.m_program.getUniformLocation("Projection");
+	m_blitPass.m_textureLocation = m_blitPass.m_program.getUniformLocation("Texture");
+
 	// Load texture
 	m_diffuseTexture.load("./assets/textures/spnza_bricks_a_diff.tga");
+	m_specularTexture.load("./assets/textures/spnza_bricks_a_spec.tga");
 
 	// Set GBuffer for deferred rendering
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
@@ -70,26 +77,35 @@ void Project::getInput(){
 }
 
 void Project::firstPass(){
+	// Enable Depth test
+	glEnable(GL_DEPTH_TEST);
+
+	// Use gbuffer shaders
 	m_gbufferPass.m_program.use();
+
+	// Bind fbo
+	m_gbuffer.bindFramebuffer();
+
+	// Clear the current buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Reset model matrix
 	m_modelMatrix = glm::mat4(1.f);
 	m_viewMatrix = m_camera.getViewMatrix();
-
-	// Enable Depth test
-	glEnable(GL_DEPTH_TEST);
 
 	// Set viewport to all the window
 	glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
 	// Send uniform data
 	glUniform1i(m_gbufferPass.m_diffuseLocation, 0);
+	glUniform1i(m_gbufferPass.m_specularLocation, 1);
 	glUniformMatrix4fv(m_gbufferPass.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
 	glUniformMatrix4fv(m_gbufferPass.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
 	glUniformMatrix4fv(m_gbufferPass.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-	// Bind texture
+	// Bind textures
 	m_diffuseTexture.bind(GL_TEXTURE0);
+	m_specularTexture.bind(GL_TEXTURE1);
 
 	// Draw
 	m_cube.render();
@@ -108,11 +124,68 @@ void Project::firstPass(){
 	glUniformMatrix4fv(m_gbufferPass.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
 	glUniformMatrix4fv(m_gbufferPass.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-	// Bind texture
+	// Bind textures
 	m_diffuseTexture.bind(GL_TEXTURE0);
+	m_specularTexture.bind(GL_TEXTURE1);
 
 	// Draw
 	m_plane.render();
+
+	// Unbind fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Disable Depth test
+	glDisable(GL_DEPTH_TEST);
+}
+
+void Project::blitPass(){
+	// Clear the buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Blit above the rest
+    glDisable(GL_DEPTH_TEST);
+
+	// Use blit shaders
+	m_blitPass.m_program.use();
+
+	// Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+	// Send uniform value
+	glUniform1i(m_blitPass.m_textureLocation, 0);
+
+	// Viewport 
+    glViewport( 0, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+
+	// Bind color texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
+
+	// Render plane
+	m_plane.render();
+
+	// Viewport 
+    glViewport(m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+
+	// Bind normal texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
+
+	// Render plane
+	m_plane.render();
+
+	// Viewport
+	glViewport(2*m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+
+	// Bind depth texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+
+	// Render plane
+	m_plane.render();
+
+	glDisable(GL_BLEND);
 }
 
 void Project::run(){
@@ -141,15 +214,13 @@ void Project::run(){
 		// Keyboard / mouse inputs
 		getInput();
 		
-		// Clear the buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
 		// Render the geometry in the gbuffer
 		firstPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
 
 		// Debugging windows to see what's inside the gbuffer
+		blitPass();
 
 		// GUI
 

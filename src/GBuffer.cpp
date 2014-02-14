@@ -18,7 +18,7 @@ void GBuffer::init(unsigned int width, unsigned int height){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	// Bind the color texture
+	// Bind the normal/spec texture
     glBindTexture(GL_TEXTURE_2D, m_textures[1]);
 
 	// Define the texture
@@ -65,7 +65,11 @@ void GBuffer::init(unsigned int width, unsigned int height){
 }
 
 void GBuffer::bindFramebuffer() const {
+	// Bind framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+	// Specify how many buffers we use
+	glDrawBuffers(2, m_drawbuffers);
 }
 
 void GBuffer::bindTextures() const {
@@ -74,6 +78,11 @@ void GBuffer::bindTextures() const {
 
 	glActiveTexture(m_drawbuffers[1]);
 	glBindTexture(GL_TEXTURE_2D, m_textures[1]);
+}
+
+const GLuint& GBuffer::getTexture(unsigned int index) const {
+	assert(index < 3);
+	return m_textures[index];
 }
 
 GBuffer::~GBuffer(){

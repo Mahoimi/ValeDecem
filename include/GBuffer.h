@@ -18,7 +18,7 @@ public:
 	void init(unsigned int width, unsigned int height);
 	void bindFramebuffer() const;
 	void bindTextures() const;
-	void unbindFramebuffer() const;
+	const GLuint& getTexture(unsigned int index) const;
 	~GBuffer();
 };
 
