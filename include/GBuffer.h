@@ -3,6 +3,10 @@
 
 #include <GL/glew.h>
 
+/*!
+* \class GBuffer
+* Handle the Framebuffer used for the deferred shading
+*/
 class GBuffer {
 private:
 	GLuint m_framebuffer;

@@ -20,7 +20,8 @@ void Project::init(){
 	// Load Shaders
 	m_gbufferGLSL.m_program.load("./shaders/gbuffer.vs.glsl", "./shaders/gbuffer.fs.glsl");
 	m_blitGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/blit.fs.glsl");
-	m_shadingGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/light.fs.glsl");
+	m_pointLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/pointLight.fs.glsl");
+	m_directionalLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/directionalLight.fs.glsl");
 
 	// Set uniform locations
 	m_gbufferGLSL.m_modelLocation = m_gbufferGLSL.m_program.getUniformLocation("Model");
@@ -34,14 +35,23 @@ void Project::init(){
 	m_blitGLSL.m_projectionLocation = m_blitGLSL.m_program.getUniformLocation("Projection");
 	m_blitGLSL.m_textureLocation = m_blitGLSL.m_program.getUniformLocation("Texture");
 
-	m_shadingGLSL.m_cameraPositionLocation = m_shadingGLSL.m_program.getUniformLocation("CameraPosition");
-	m_shadingGLSL.m_inverseViewProjectionLocation = m_shadingGLSL.m_program.getUniformLocation("InverseViewProjection");
-	m_shadingGLSL.m_lightPositionLocation = m_shadingGLSL.m_program.getUniformLocation("LightPosition");
-	m_shadingGLSL.m_lightColorLocation = m_shadingGLSL.m_program.getUniformLocation("LightColor");
-	m_shadingGLSL.m_lightIntensityLocation = m_shadingGLSL.m_program.getUniformLocation("LightIntensity");
-	m_shadingGLSL.m_materialLocation = m_shadingGLSL.m_program.getUniformLocation("Material");
-	m_shadingGLSL.m_normalLocation = m_shadingGLSL.m_program.getUniformLocation("Normal");
-	m_shadingGLSL.m_depthLocation = m_shadingGLSL.m_program.getUniformLocation("Depth");
+	m_pointLightGLSL.m_cameraPositionLocation = m_pointLightGLSL.m_program.getUniformLocation("CameraPosition");
+	m_pointLightGLSL.m_inverseViewProjectionLocation = m_pointLightGLSL.m_program.getUniformLocation("InverseViewProjection");
+	m_pointLightGLSL.m_lightPositionLocation = m_pointLightGLSL.m_program.getUniformLocation("LightPosition");
+	m_pointLightGLSL.m_lightColorLocation = m_pointLightGLSL.m_program.getUniformLocation("LightColor");
+	m_pointLightGLSL.m_lightIntensityLocation = m_pointLightGLSL.m_program.getUniformLocation("LightIntensity");
+	m_pointLightGLSL.m_materialLocation = m_pointLightGLSL.m_program.getUniformLocation("Material");
+	m_pointLightGLSL.m_normalLocation = m_pointLightGLSL.m_program.getUniformLocation("Normal");
+	m_pointLightGLSL.m_depthLocation = m_pointLightGLSL.m_program.getUniformLocation("Depth");
+
+	m_directionalLightGLSL.m_cameraPositionLocation = m_directionalLightGLSL.m_program.getUniformLocation("CameraPosition");
+	m_directionalLightGLSL.m_inverseViewProjectionLocation = m_directionalLightGLSL.m_program.getUniformLocation("InverseViewProjection");
+	m_directionalLightGLSL.m_lightDirectionLocation = m_directionalLightGLSL.m_program.getUniformLocation("LightDirection");
+	m_directionalLightGLSL.m_lightColorLocation = m_directionalLightGLSL.m_program.getUniformLocation("LightColor");
+	m_directionalLightGLSL.m_lightIntensityLocation = m_directionalLightGLSL.m_program.getUniformLocation("LightIntensity");
+	m_directionalLightGLSL.m_materialLocation = m_directionalLightGLSL.m_program.getUniformLocation("Material");
+	m_directionalLightGLSL.m_normalLocation = m_directionalLightGLSL.m_program.getUniformLocation("Normal");
+	m_directionalLightGLSL.m_depthLocation = m_directionalLightGLSL.m_program.getUniformLocation("Depth");
 
 	// Load texture
 	m_diffuseTexture.load("./assets/textures/spnza_bricks_a_diff.tga");
@@ -150,12 +160,9 @@ void Project::gBufferPass(){
 	glDisable(GL_DEPTH_TEST);
 }
 
-void Project::shadingPass(){
-	// Clear the buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Use shading shaders
-	m_shadingGLSL.m_program.use();
+void Project::lightingByPointLight(){
+	// Use pointLight shaders
+	m_pointLightGLSL.m_program.use();
 
 	// Set Viewport 
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
@@ -166,18 +173,18 @@ void Project::shadingPass(){
 	float lightIntensity = 2.f;
 
 	// Send uniform value
-	glUniform1i(m_shadingGLSL.m_materialLocation, 0);
-	glUniform1i(m_shadingGLSL.m_normalLocation, 1);
-	glUniform1i(m_shadingGLSL.m_depthLocation, 2);
+	glUniform1i(m_pointLightGLSL.m_materialLocation, 0);
+	glUniform1i(m_pointLightGLSL.m_normalLocation, 1);
+	glUniform1i(m_pointLightGLSL.m_depthLocation, 2);
 
 	glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(m_projectionMatrix * m_viewMatrix));
 
-	glUniform3fv(m_shadingGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
-	glUniformMatrix4fv(m_shadingGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
+	glUniform3fv(m_pointLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
+	glUniformMatrix4fv(m_pointLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-	glUniform3fv(m_shadingGLSL.m_lightPositionLocation, 1, glm::value_ptr(lightPosition));
-	glUniform3fv(m_shadingGLSL.m_lightColorLocation, 1, glm::value_ptr(lightColor));
-	glUniform1f(m_shadingGLSL.m_lightIntensityLocation, lightIntensity);
+	glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(lightPosition));
+	glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(lightColor));
+	glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, lightIntensity);
 
 	// Bind textures : material, normal and depth
 	glActiveTexture(GL_TEXTURE0);
@@ -188,7 +195,57 @@ void Project::shadingPass(){
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
 
 	m_blitPlane.render();
+}
 
+void Project::lightingByDirectionalLight(){
+	// Use directionalLight shaders
+	m_directionalLightGLSL.m_program.use();
+
+	// Set Viewport 
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+	// Light setting
+	glm::vec3 lightDirection(1, -1, 1);
+	glm::vec3 lightColor(1,1,1);
+	float lightIntensity = 0.2f;
+
+	// Send uniform value
+	glUniform1i(m_directionalLightGLSL.m_materialLocation, 0);
+	glUniform1i(m_directionalLightGLSL.m_normalLocation, 1);
+	glUniform1i(m_directionalLightGLSL.m_depthLocation, 2);
+
+	glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(m_projectionMatrix * m_viewMatrix));
+
+	glUniform3fv(m_directionalLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
+	glUniformMatrix4fv(m_directionalLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
+
+	glUniform3fv(m_directionalLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(lightDirection));
+	glUniform3fv(m_directionalLightGLSL.m_lightColorLocation, 1, glm::value_ptr(lightColor));
+	glUniform1f(m_directionalLightGLSL.m_lightIntensityLocation, lightIntensity);
+
+	// Bind textures : material, normal and depth
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+
+	m_blitPlane.render();
+}
+
+void Project::lightingPass(){
+	// Clear the buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+	lightingByPointLight();
+	lightingByDirectionalLight();
+
+	glDisable(GL_BLEND);
 }
 
 void Project::blitPass(){
@@ -265,7 +322,7 @@ void Project::run(){
 		gBufferPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
-		shadingPass();
+		lightingPass();
 
 		// Debugging windows to see what's inside the gbuffer
 		blitPass();

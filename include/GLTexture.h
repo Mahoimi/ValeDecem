@@ -5,6 +5,10 @@
 #include <GL/glew.h>
 #include <vector>
 
+/*!
+* \class GLTexture
+* Store an image in an OpenGL texture
+*/
 class GLTexture {
 private:
 	GLuint m_textureID;

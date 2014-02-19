@@ -22,8 +22,8 @@ void Plane::init(float textureRepeat){
 	// Lock the IBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBO[0]);
 
-	// Write the data inside the IBO
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
+		// Write the data inside the IBO
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
 
 	// Unlock the IBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -31,9 +31,9 @@ void Plane::init(float textureRepeat){
     // Lock the VBO
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO[1]);
 
-    // Write the data inside the VBO
-    // Warning ! m_vertices.data() != &m_vertices[0]
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
+		// Write the data inside the VBO
+		// Warning ! m_vertices.data() != &m_vertices[0]
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
 
     // Unlock the VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -62,11 +62,11 @@ void Plane::init(float textureRepeat){
 
 void Plane::render() const{
     glBindVertexArray(m_VAO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBO[0]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBO[0]);
 
-        glDrawElements(GL_TRIANGLES, m_verticesCount, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, m_verticesCount, GL_UNSIGNED_INT, 0);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
 }

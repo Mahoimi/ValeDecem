@@ -3,6 +3,10 @@
 
 #include <GL/glew.h>
 
+/*!
+* \class GLProgram
+* Handle the shaders
+*/
 class GLProgram {
 private:
     GLuint m_programID;

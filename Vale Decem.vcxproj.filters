@@ -85,7 +85,10 @@
     <None Include="shaders\gbuffer.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\light.fs.glsl">
+    <None Include="shaders\pointLight.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\directionalLight.fs.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

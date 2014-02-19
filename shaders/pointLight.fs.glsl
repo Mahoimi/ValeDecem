@@ -25,7 +25,9 @@ void main(void)
 	vec3 position = vec3(wPosition/wPosition.w);
 
 	vec3 diffuse = material.rgb;
-	float spec = material.a;
+	float spec = texture(Normal, v_UV).a;
+	
+	float coeffSpec = 100.0;
 
 	vec3 n = normalize(normal);
 	vec3 l =  LightPosition - position;
@@ -36,9 +38,9 @@ void main(void)
 	float n_dot_h = clamp(dot(n, h), 0, 1.0);
 
 	float d = distance(LightPosition, position);
-	float att = clamp(1.0 / (1.0 + 1.0 * (d * d)), 0.0, 1.0);
+	float attenuation = clamp(1.0 / (1.0 + 1.0 * (d * d)), 0.0, 1.0);
 
-	vec3 color = LightColor * LightIntensity * att * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	vec3 color = LightColor * LightIntensity * attenuation * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * coeffSpec));
 
 	Color = vec4(color, 1.0);
 }

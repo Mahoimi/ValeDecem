@@ -13,6 +13,12 @@
 #include <GLTexture.h>
 #include <GBuffer.h>
 
+/*!
+* \class Project
+* Create and Handle the sfml window events
+* Generate the OpenGL objects
+* Make the passes to render the 3D scene
+*/
 class Project {
 private:
 	sf::Window m_window;
@@ -48,7 +54,7 @@ private:
 	};
 	BlitGLSL m_blitGLSL;
 
-	struct ShadingGLSL {
+	struct PointLightGLSL {
 		GLuint m_inverseViewProjectionLocation;
 		GLuint m_lightPositionLocation;
 		GLuint m_lightColorLocation;
@@ -59,9 +65,25 @@ private:
 		GLuint m_depthLocation;
 		GLProgram m_program;
 
-		ShadingGLSL(){}
+		PointLightGLSL(){}
 	};
-	ShadingGLSL m_shadingGLSL;
+	PointLightGLSL m_pointLightGLSL;
+
+	struct DirectionalLightGLSL {
+		GLuint m_inverseViewProjectionLocation;
+		GLuint m_lightDirectionLocation;
+		GLuint m_lightColorLocation;
+		GLuint m_lightIntensityLocation;
+		GLuint m_cameraPositionLocation;
+		GLuint m_materialLocation;
+		GLuint m_normalLocation;
+		GLuint m_depthLocation;
+		GLProgram m_program;
+
+		DirectionalLightGLSL(){}
+	};
+	DirectionalLightGLSL m_directionalLightGLSL;
+
 
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
@@ -72,7 +94,9 @@ private:
 
 	void getInput();
 	void gBufferPass();
-	void shadingPass();
+	void lightingByPointLight();
+	void lightingByDirectionalLight();
+	void lightingPass();
 	void blitPass();
 
 public:

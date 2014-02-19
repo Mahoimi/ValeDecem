@@ -5,6 +5,10 @@
 #include <GL/glew.h>
 #include <Vertex.h>
 
+/*!
+* \class Cube
+* Create the IBO, VBO and VAO used for cube rendering
+*/
 class Cube {
 private:
 	unsigned int m_verticesCount;

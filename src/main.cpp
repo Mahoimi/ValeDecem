@@ -1,5 +1,8 @@
 #include <Project.h>
 
+/*!
+ * ValeDecem - Main function
+ */
 int main()
 {
 	int width = 800;

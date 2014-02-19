@@ -105,9 +105,10 @@
   <ItemGroup>
     <None Include="shaders\blit.fs.glsl" />
     <None Include="shaders\blit.vs.glsl" />
+    <None Include="shaders\directionalLight.fs.glsl" />
     <None Include="shaders\gbuffer.fs.glsl" />
     <None Include="shaders\gbuffer.vs.glsl" />
-    <None Include="shaders\light.fs.glsl" />
+    <None Include="shaders\pointLight.fs.glsl" />
     <None Include="shaders\simple.fs.glsl" />
     <None Include="shaders\simple.vs.glsl" />
   </ItemGroup>

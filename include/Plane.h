@@ -5,6 +5,10 @@
 #include <GL/glew.h>
 #include <Vertex.h>
 
+/*!
+* \class Plane
+* Create the IBO, VBO and VAO used for plane rendering
+*/
 class Plane {
 private:
 	unsigned int m_verticesCount;

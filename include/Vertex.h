@@ -3,6 +3,10 @@
 
 #include <glm/glm.hpp>
 
+/*!
+* \class Vertex
+* Store the informations used to describe a vertex
+*/
 struct Vertex{
 
     glm::vec3 position;
