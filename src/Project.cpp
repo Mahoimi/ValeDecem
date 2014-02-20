@@ -22,6 +22,7 @@ void Project::init(){
 	m_blitGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/blit.fs.glsl");
 	m_pointLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/pointLight.fs.glsl");
 	m_directionalLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/directionalLight.fs.glsl");
+	m_spotLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/spotLight.fs.glsl");
 
 	// Set uniform locations
 	m_gbufferGLSL.m_modelLocation = m_gbufferGLSL.m_program.getUniformLocation("Model");
@@ -53,6 +54,16 @@ void Project::init(){
 	m_directionalLightGLSL.m_normalLocation = m_directionalLightGLSL.m_program.getUniformLocation("Normal");
 	m_directionalLightGLSL.m_depthLocation = m_directionalLightGLSL.m_program.getUniformLocation("Depth");
 
+	m_spotLightGLSL.m_cameraPositionLocation = m_spotLightGLSL.m_program.getUniformLocation("CameraPosition");
+	m_spotLightGLSL.m_inverseViewProjectionLocation = m_spotLightGLSL.m_program.getUniformLocation("InverseViewProjection");
+	m_spotLightGLSL.m_lightPositionLocation = m_pointLightGLSL.m_program.getUniformLocation("LightPosition");
+	m_spotLightGLSL.m_lightDirectionLocation = m_spotLightGLSL.m_program.getUniformLocation("LightDirection");
+	m_spotLightGLSL.m_lightColorLocation = m_spotLightGLSL.m_program.getUniformLocation("LightColor");
+	m_spotLightGLSL.m_lightIntensityLocation = m_spotLightGLSL.m_program.getUniformLocation("LightIntensity");
+	m_spotLightGLSL.m_materialLocation = m_spotLightGLSL.m_program.getUniformLocation("Material");
+	m_spotLightGLSL.m_normalLocation = m_spotLightGLSL.m_program.getUniformLocation("Normal");
+	m_spotLightGLSL.m_depthLocation = m_spotLightGLSL.m_program.getUniformLocation("Depth");
+
 	// Load texture
 	m_diffuseTexture.load("./assets/textures/spnza_bricks_a_diff.tga");
 	m_specularTexture.load("./assets/textures/spnza_bricks_a_spec.tga");
@@ -64,6 +75,11 @@ void Project::init(){
 	m_cube.init();
 	m_floorPlane.init(50.f);
 	m_blitPlane.init(1.f);
+
+	// Init lights
+	m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 2.f);
+	m_directionalLight.init(glm::vec3(1, -1, 1), glm::vec3(1, 1, 1), 0.2f);
+	m_spotLight.init(glm::vec3(0.0, 1.0, 0.0), glm::vec3(-1.0, -1.0, -1.0), glm::vec3(1, 1, 1), 1.f);
 }
 
 void Project::getInput(){
@@ -167,11 +183,6 @@ void Project::lightingByPointLight(){
 	// Set Viewport 
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
-	// Light setting
-	glm::vec3 lightPosition(1, 1, 1);
-	glm::vec3 lightColor(1,1,1);
-	float lightIntensity = 2.f;
-
 	// Send uniform value
 	glUniform1i(m_pointLightGLSL.m_materialLocation, 0);
 	glUniform1i(m_pointLightGLSL.m_normalLocation, 1);
@@ -182,9 +193,9 @@ void Project::lightingByPointLight(){
 	glUniform3fv(m_pointLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
 	glUniformMatrix4fv(m_pointLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-	glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(lightPosition));
-	glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(lightColor));
-	glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, lightIntensity);
+	glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_pointLight.getPosition()));
+	glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_pointLight.getColor()));
+	glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_pointLight.getIntensity());
 
 	// Bind textures : material, normal and depth
 	glActiveTexture(GL_TEXTURE0);
@@ -204,11 +215,6 @@ void Project::lightingByDirectionalLight(){
 	// Set Viewport 
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
-	// Light setting
-	glm::vec3 lightDirection(1, -1, 1);
-	glm::vec3 lightColor(1,1,1);
-	float lightIntensity = 0.2f;
-
 	// Send uniform value
 	glUniform1i(m_directionalLightGLSL.m_materialLocation, 0);
 	glUniform1i(m_directionalLightGLSL.m_normalLocation, 1);
@@ -219,9 +225,9 @@ void Project::lightingByDirectionalLight(){
 	glUniform3fv(m_directionalLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
 	glUniformMatrix4fv(m_directionalLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-	glUniform3fv(m_directionalLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(lightDirection));
-	glUniform3fv(m_directionalLightGLSL.m_lightColorLocation, 1, glm::value_ptr(lightColor));
-	glUniform1f(m_directionalLightGLSL.m_lightIntensityLocation, lightIntensity);
+	glUniform3fv(m_directionalLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(m_directionalLight.getDirection()));
+	glUniform3fv(m_directionalLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_directionalLight.getColor()));
+	glUniform1f(m_directionalLightGLSL.m_lightIntensityLocation, m_directionalLight.getIntensity());
 
 	// Bind textures : material, normal and depth
 	glActiveTexture(GL_TEXTURE0);
@@ -234,6 +240,40 @@ void Project::lightingByDirectionalLight(){
 	m_blitPlane.render();
 }
 
+void Project::lightingBySpotLight(){
+	// Use spotLight shaders
+	m_spotLightGLSL.m_program.use();
+
+	// Set Viewport 
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+	// Send uniform value
+	glUniform1i(m_spotLightGLSL.m_materialLocation, 0);
+	glUniform1i(m_spotLightGLSL.m_normalLocation, 1);
+	glUniform1i(m_spotLightGLSL.m_depthLocation, 2);
+
+	glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(m_projectionMatrix * m_viewMatrix));
+
+	glUniform3fv(m_spotLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
+	glUniformMatrix4fv(m_spotLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
+
+	glUniform3fv(m_spotLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(m_spotLight.getDirection()));
+	glUniform3fv(m_spotLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_spotLight.getPosition()));
+	glUniform3fv(m_spotLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_spotLight.getColor()));
+	glUniform1f(m_spotLightGLSL.m_lightIntensityLocation, m_spotLight.getIntensity());
+
+	// Bind textures : material, normal and depth
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+
+	m_blitPlane.render();
+}
+
+
 void Project::lightingPass(){
 	// Clear the buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -244,6 +284,7 @@ void Project::lightingPass(){
 
 	lightingByPointLight();
 	lightingByDirectionalLight();
+	lightingBySpotLight();
 
 	glDisable(GL_BLEND);
 }

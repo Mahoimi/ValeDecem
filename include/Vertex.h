@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 /*!
-* \class Vertex
+* \struct Vertex
 * Store the informations used to describe a vertex
 */
 struct Vertex{

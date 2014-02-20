@@ -8,6 +8,9 @@
 
 #include <Cube.h>
 #include <Plane.h>
+#include <PointLight.h>
+#include <DirectionalLight.h>
+#include <SpotLight.h>
 #include <GLProgram.h>
 #include <FreeFlyCamera.h>
 #include <GLTexture.h>
@@ -26,6 +29,11 @@ private:
 	Cube m_cube;
 	Plane m_floorPlane;
 	Plane m_blitPlane;
+
+	PointLight m_pointLight;
+	DirectionalLight m_directionalLight;
+	SpotLight m_spotLight;
+
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
 	FreeFlyCamera m_camera;
@@ -84,6 +92,22 @@ private:
 	};
 	DirectionalLightGLSL m_directionalLightGLSL;
 
+	struct SpotLightGLSL {
+		GLuint m_inverseViewProjectionLocation;
+		GLuint m_lightPositionLocation;
+		GLuint m_lightDirectionLocation;
+		GLuint m_lightColorLocation;
+		GLuint m_lightIntensityLocation;
+		GLuint m_cameraPositionLocation;
+		GLuint m_materialLocation;
+		GLuint m_normalLocation;
+		GLuint m_depthLocation;
+		GLProgram m_program;
+
+		SpotLightGLSL(){}
+	};
+	SpotLightGLSL m_spotLightGLSL;
+
 
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
@@ -96,6 +120,7 @@ private:
 	void gBufferPass();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();
+	void lightingBySpotLight();
 	void lightingPass();
 	void blitPass();
 

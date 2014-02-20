@@ -1,47 +1,56 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Fichiers sources">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Fichiers d%27en-tête">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Fichiers de ressources">
+    <Filter Include="Fichiers d%27en-tête\Fichiers de ressources">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shaders">
+    <Filter Include="Fichiers d%27en-tête\Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Shaders">
       <UniqueIdentifier>{9c3845c0-7177-460e-9d12-0c2a3c3abf72}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLProgram.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLTexture.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="src\Cube.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Plane.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClCompile>
     <ClCompile Include="src\GBuffer.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLProgram.cpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLTexture.cpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Plane.cpp">
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClCompile>
     <ClCompile Include="src\Project.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FreeFlyCamera.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Cube.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GBuffer.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DirectionalLight.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="include\GLProgram.h">
@@ -50,46 +59,49 @@
     <ClInclude Include="include\GLTexture.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="include\Cube.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Vertex.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="include\Plane.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="include\GBuffer.h">
+    <ClInclude Include="include\PointLight.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="include\Project.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpotLight.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Vertex.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\spotLight.fs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
     <None Include="shaders\blit.fs.glsl">
-      <Filter>Shaders</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
     </None>
     <None Include="shaders\blit.vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\simple.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\simple.vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\gbuffer.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\gbuffer.vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\pointLight.fs.glsl">
-      <Filter>Shaders</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
     </None>
     <None Include="shaders\directionalLight.fs.glsl">
-      <Filter>Shaders</Filter>
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="shaders\gbuffer.fs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="shaders\gbuffer.vs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="shaders\pointLight.fs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="shaders\simple.fs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="shaders\simple.vs.glsl">
+      <Filter>Fichiers d%27en-tête</Filter>
     </None>
   </ItemGroup>
 </Project>
