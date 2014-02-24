@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2014 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -315,6 +315,18 @@ public :
         ///
         ////////////////////////////////////////////////////////////
         void parse(const std::string& data);
+
+
+        ////////////////////////////////////////////////////////////
+        /// \brief Read values passed in the answer header
+        ///
+        /// This function is used by Http to extract values passed
+        /// in the response.
+        ///
+        /// \param in String stream containing the header values
+        ///
+        ////////////////////////////////////////////////////////////
+        void parseFields(std::istream &in);
 
         ////////////////////////////////////////////////////////////
         // Types

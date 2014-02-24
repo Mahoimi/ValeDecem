@@ -1,6 +1,6 @@
 #include <GLTexture.h>
 #include <cassert>
-#include <SFML\Graphics\Image.hpp>
+#include <SFML/Graphics/Image.hpp>
 
 
 GLTexture::GLTexture(): m_textureID(0){

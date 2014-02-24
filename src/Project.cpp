@@ -18,11 +18,11 @@ void Project::init(){
 	m_projectionMatrix = glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 100.f);
 
 	// Load Shaders
-	m_gbufferGLSL.m_program.load("./shaders/gbuffer.vs.glsl", "./shaders/gbuffer.fs.glsl");
-	m_blitGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/blit.fs.glsl");
-	m_pointLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/pointLight.fs.glsl");
-	m_directionalLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/directionalLight.fs.glsl");
-	m_spotLightGLSL.m_program.load("./shaders/blit.vs.glsl", "./shaders/spotLight.fs.glsl");
+    m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
+    m_blitGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/blit.fs.glsl");
+    m_pointLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/pointLight.fs.glsl");
+    m_directionalLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/directionalLight.fs.glsl");
+    m_spotLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/spotLight.fs.glsl");
 
 	// Set uniform locations
 	m_gbufferGLSL.m_modelLocation = m_gbufferGLSL.m_program.getUniformLocation("Model");
@@ -65,8 +65,8 @@ void Project::init(){
 	m_spotLightGLSL.m_depthLocation = m_spotLightGLSL.m_program.getUniformLocation("Depth");
 
 	// Load texture
-	m_diffuseTexture.load("./assets/textures/spnza_bricks_a_diff.tga");
-	m_specularTexture.load("./assets/textures/spnza_bricks_a_spec.tga");
+    m_diffuseTexture.load("../../assets/textures/spnza_bricks_a_diff.tga");
+    m_specularTexture.load("../../assets/textures/spnza_bricks_a_spec.tga");
 
 	// Set GBuffer for deferred rendering
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);

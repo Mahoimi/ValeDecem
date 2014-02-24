@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2014 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -49,6 +49,17 @@ class InputStream;
 ////////////////////////////////////////////////////////////
 class SFML_GRAPHICS_API Font
 {
+public :
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Holds various information about a font
+    ///
+    ////////////////////////////////////////////////////////////
+    struct Info
+    {
+        std::string family; ///< The font family
+    };
+
 public :
 
     ////////////////////////////////////////////////////////////
@@ -129,6 +140,14 @@ public :
     ///
     ////////////////////////////////////////////////////////////
     bool loadFromStream(InputStream& stream);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the font information
+    ///
+    /// \return A structure that holds the font information
+    ///
+    ////////////////////////////////////////////////////////////
+    const Info& getInfo() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Retrieve a glyph of the font
@@ -283,6 +302,7 @@ private :
     void*                      m_face;        ///< Pointer to the internal font face (it is typeless to avoid exposing implementation details)
     void*                      m_streamRec;   ///< Pointer to the stream rec instance (it is typeless to avoid exposing implementation details)
     int*                       m_refCount;    ///< Reference counter used by implicit sharing
+    Info                       m_info;        ///< Information about the font
     mutable PageTable          m_pages;       ///< Table containing the glyphs pages by character size
     mutable std::vector<Uint8> m_pixelBuffer; ///< Pixel buffer holding a glyph's pixels before being written to the texture
 };
