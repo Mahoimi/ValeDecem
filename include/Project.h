@@ -13,6 +13,7 @@
 #include <SpotLight.h>
 #include <GLProgram.h>
 #include <FreeFlyCamera.h>
+#include <CubemapTexture.h>
 #include <GLTexture.h>
 #include <GBuffer.h>
 
@@ -34,10 +35,23 @@ private:
 	DirectionalLight m_directionalLight;
 	SpotLight m_spotLight;
 
+    CubemapTexture m_skyboxTexture;
+
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
 	FreeFlyCamera m_camera;
 	GBuffer m_gbuffer;
+
+    struct SkyboxGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLuint m_skyboxTextureLocation;
+        GLProgram m_program;
+
+        SkyboxGLSL(){}
+    };
+    SkyboxGLSL m_skyboxGLSL;
 
 	struct GBufferGLSL {
 		GLuint m_modelLocation;
@@ -116,7 +130,10 @@ private:
 	sf::Vector2i m_mousePosition;
 	sf::Vector2i m_prevMousePosition;
 
+    bool m_debugMode;
+
 	void getInput();
+    void skyboxPass();
 	void gBufferPass();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();
@@ -126,7 +143,8 @@ private:
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
-		m_window(sf::VideoMode(width, height), windowtitle, sf::Style::Default, sf::ContextSettings(32))	{}
+        m_window(sf::VideoMode(width, height), windowtitle, sf::Style::Default, sf::ContextSettings(32)),
+        m_debugMode(false){}
 	void init();
 	void run();
 };

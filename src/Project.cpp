@@ -18,6 +18,7 @@ void Project::init(){
 	m_projectionMatrix = glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 100.f);
 
 	// Load Shaders
+    m_skyboxGLSL.m_program.load("../../shaders/skybox.vs.glsl", "../../shaders/skybox.fs.glsl");
     m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
     m_blitGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/blit.fs.glsl");
     m_pointLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/pointLight.fs.glsl");
@@ -25,6 +26,11 @@ void Project::init(){
     m_spotLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/spotLight.fs.glsl");
 
 	// Set uniform locations
+    m_skyboxGLSL.m_modelLocation = m_skyboxGLSL.m_program.getUniformLocation("Model");
+    m_skyboxGLSL.m_viewLocation = m_skyboxGLSL.m_program.getUniformLocation("View");
+    m_skyboxGLSL.m_projectionLocation = m_skyboxGLSL.m_program.getUniformLocation("Projection");
+    m_skyboxGLSL.m_skyboxTextureLocation = m_skyboxGLSL.m_program.getUniformLocation("SkyboxTexture");
+
 	m_gbufferGLSL.m_modelLocation = m_gbufferGLSL.m_program.getUniformLocation("Model");
 	m_gbufferGLSL.m_viewLocation = m_gbufferGLSL.m_program.getUniformLocation("View");
 	m_gbufferGLSL.m_projectionLocation = m_gbufferGLSL.m_program.getUniformLocation("Projection");
@@ -67,6 +73,15 @@ void Project::init(){
 	// Load texture
     m_diffuseTexture.load("../../assets/textures/spnza_bricks_a_diff.tga");
     m_specularTexture.load("../../assets/textures/spnza_bricks_a_spec.tga");
+
+    m_skyboxTexture.load("../../assets/textures/skybox/",
+                         "spacebox_right.png",
+                         "spacebox_left.png",
+                         "spacebox_top.png",
+                         "spacebox_bottom.png",
+                         "spacebox_front.png",
+                         "spacebox_back.png");
+
 
 	// Set GBuffer for deferred rendering
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
@@ -113,6 +128,40 @@ void Project::getInput(){
     }
 }
 
+void Project::skyboxPass(){
+    // Enable CULL FACE
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glDepthFunc(GL_LEQUAL);
+
+    // Use gbuffer shaders
+    m_skyboxGLSL.m_program.use();
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::translate(m_modelMatrix, m_camera.getPosition());
+    m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(20.f));
+
+    // Set viewport to all the window
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+    // Send uniform data
+    glUniform1i(m_skyboxGLSL.m_skyboxTextureLocation, 0);
+    glUniformMatrix4fv(m_skyboxGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_skyboxGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_skyboxGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Bind textures
+    m_skyboxTexture.bind(GL_TEXTURE0);
+
+    // Draw
+    m_cube.render();
+
+    glDisable(GL_CULL_FACE);
+}
+
+
+
 void Project::gBufferPass(){
 	// Enable Depth test
 	glEnable(GL_DEPTH_TEST);
@@ -127,8 +176,8 @@ void Project::gBufferPass(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Reset model matrix
-	m_modelMatrix = glm::mat4(1.f);
-	m_viewMatrix = m_camera.getViewMatrix();
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0,0.01f,0));
 
 	// Set viewport to all the window
 	glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
@@ -275,10 +324,7 @@ void Project::lightingBySpotLight(){
 
 
 void Project::lightingPass(){
-	// Clear the buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Enable blending
+    // Enable blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -290,10 +336,6 @@ void Project::lightingPass(){
 }
 
 void Project::blitPass(){
-	// Enable blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-
 	// Use blit shaders
 	m_blitGLSL.m_program.use();
 
@@ -329,8 +371,6 @@ void Project::blitPass(){
 
 	// Render plane
 	m_blitPlane.render();
-
-	glDisable(GL_BLEND);
 }
 
 void Project::run(){
@@ -354,21 +394,39 @@ void Project::run(){
                 // adjust the viewport when the window is resized
                 glViewport(0, 0, event.size.width, event.size.height);
             }
+            else if (event.type == sf::Event::KeyPressed){
+                // Switch to debug mode
+                if (event.key.code == sf::Keyboard::D){
+                    m_debugMode = !m_debugMode;
+                }
+            }
         }
 
 		// Keyboard / mouse inputs
 		getInput();
+
+        m_viewMatrix = m_camera.getViewMatrix();
+
+        // Clear the buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Render the Skybox
+        skyboxPass();
 		
 		// Render the geometry in the gbuffer
-		gBufferPass();
+        gBufferPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
-		lightingPass();
+        lightingPass();
 
-		// Debugging windows to see what's inside the gbuffer
-		blitPass();
+        // Debugging mode = Blit windows + GUI
+        if (m_debugMode){
+            // Debugging windows to see what's inside the gbuffer
+            blitPass();
 
-		// GUI
+            // GUI
+
+        }
 
         // end the current frame (internally swaps the front and back buffers)
         m_window.display();
