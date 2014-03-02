@@ -14,10 +14,10 @@ struct Vertex{
     glm::vec2 tex_coords;
 
     Vertex(){
-		for (unsigned int i = 0; i < 3 ; ++i) {
+        for (unsigned int i = 0; i < 3 ; ++i) {
 			position[i] = 0.f;
 			normal_coords[i] = 0.f;
-			tex_coords[i] = 0.f;
+            if (i < 2) tex_coords[i] = 0.f;
 		}
     }
 

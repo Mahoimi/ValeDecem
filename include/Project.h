@@ -16,6 +16,7 @@
 #include <CubemapTexture.h>
 #include <GLTexture.h>
 #include <GBuffer.h>
+#include <Mesh.h>
 
 /*!
 * \class Project
@@ -30,6 +31,7 @@ private:
 	Cube m_cube;
 	Plane m_floorPlane;
 	Plane m_blitPlane;
+    MeshRenderer m_phoenix;
 
 	PointLight m_pointLight;
 	DirectionalLight m_directionalLight;
@@ -63,7 +65,8 @@ private:
 
 		GBufferGLSL(){}
 	};
-	GBufferGLSL m_gbufferGLSL;
+    GBufferGLSL m_gbufferGLSL;
+    GBufferGLSL m_meshGLSL;
 
 	struct BlitGLSL {
 		GLuint m_modelLocation;
