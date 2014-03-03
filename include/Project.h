@@ -17,6 +17,7 @@
 #include <GLTexture.h>
 #include <GBuffer.h>
 #include <Mesh.h>
+#include <FXFbo.h>
 
 /*!
 * \class Project
@@ -43,6 +44,7 @@ private:
 	GLTexture m_specularTexture;
 	FreeFlyCamera m_camera;
 	GBuffer m_gbuffer;
+    FXFbo m_fxfbo;
 
     struct SkyboxGLSL {
         GLuint m_modelLocation;
@@ -142,6 +144,7 @@ private:
 	void lightingByDirectionalLight();
 	void lightingBySpotLight();
 	void lightingPass();
+    void fxPass();
 	void blitPass();
 
 public:

@@ -93,6 +93,9 @@ void Project::init(){
 	// Set GBuffer for deferred rendering
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
 
+    // Set framebuffer for post effects with the depth texture of the gbuffer
+    m_fxfbo.init(m_window.getSize().x, m_window.getSize().y);
+
 	// Init VAO/VBO for 3D primitives / meshes
 	m_cube.init();
 	m_floorPlane.init(50.f);
@@ -316,6 +319,9 @@ void Project::lightingBySpotLight(){
 
 
 void Project::lightingPass(){
+    m_fxfbo.bindFramebuffer();
+    glClear(GL_COLOR_BUFFER_BIT);
+
     // Enable blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -325,9 +331,16 @@ void Project::lightingPass(){
 	lightingBySpotLight();
 
     glDisable(GL_BLEND);
+
+    // Unbind fbo
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Project::skyboxPass(){
+    m_fxfbo.bindFramebuffer();
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_gbuffer.getTexture(2), 0);
+
+    glEnable(GL_DEPTH_TEST);
     // Enable CULL FACE
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -357,6 +370,28 @@ void Project::skyboxPass(){
     m_cube.render();
 
     glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
+    // Unbind fbo
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Project::fxPass(){
+    // Use spotLight shaders
+    m_blitGLSL.m_program.use();
+
+    // Set Viewport
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+    // Send uniform value
+    glUniform1i(m_blitGLSL.m_textureLocation, 0);
+
+    // Bind textures : material, normal and depth
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture());
+
+    m_blitPlane.render();
 }
 
 void Project::blitPass(){
@@ -387,14 +422,14 @@ void Project::blitPass(){
 	m_blitPlane.render();
 
 	// Viewport
-	glViewport(2*m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+    glViewport(2*m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
 
 	// Bind depth texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
 
 	// Render plane
-	m_blitPlane.render();
+    m_blitPlane.render();
 }
 
 void Project::run(){
@@ -437,11 +472,13 @@ void Project::run(){
 		// Render the geometry in the gbuffer
         gBufferPass();
 
-        // Render the Skybox
-        //skyboxPass();
-
 		// Use the textures in the gbuffer to calculate the illumination
         lightingPass();
+
+        // Render the skybox
+        skyboxPass();
+
+        fxPass();
 
         // Debugging mode = Blit windows + GUI
         if (m_debugMode){
