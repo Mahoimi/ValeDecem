@@ -97,10 +97,11 @@ void Project::init(){
     m_fxfbo.init(m_window.getSize().x, m_window.getSize().y);
 
 	// Init VAO/VBO for 3D primitives / meshes
-	m_cube.init();
-	m_floorPlane.init(50.f);
+    m_cube.init();
+    m_floorPlane.init(50.f);
 	m_blitPlane.init(1.f);
-    m_phoenix.load("../../assets/sponza/sponza.obj");
+    m_sponza.load("../../assets/sponza/sponza.obj");
+    m_tardis.load("../../assets/tardis/tardis.obj");
 
 	// Init lights
     m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 1.f);
@@ -152,26 +153,7 @@ void Project::gBufferPass(){
 	// Clear the current buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0,0.01f,0));
-
-	// Set viewport to all the window
-	glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
-
-	// Send uniform data
-	glUniform1i(m_gbufferGLSL.m_diffuseLocation, 0);
-	glUniform1i(m_gbufferGLSL.m_specularLocation, 1);
-	glUniformMatrix4fv(m_gbufferGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-	glUniformMatrix4fv(m_gbufferGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-	glUniformMatrix4fv(m_gbufferGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
-
-	// Bind textures
-	m_diffuseTexture.bind(GL_TEXTURE0);
-	m_specularTexture.bind(GL_TEXTURE1);
-
-	// Draw
-	m_cube.render();
+    // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Reset model matrix
 	m_modelMatrix = glm::mat4(1.f);
@@ -195,6 +177,8 @@ void Project::gBufferPass(){
     // Draw
     m_floorPlane.render();
 
+    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+
     // Use mesh shader
     m_meshGLSL.m_program.use();
 
@@ -211,7 +195,23 @@ void Project::gBufferPass(){
     glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
     // Draw
-    m_phoenix.render();
+    m_sponza.render();
+
+    // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
+    // Send uniform data
+    glUniform1i(m_meshGLSL.m_diffuseLocation, 0);
+    glUniform1i(m_meshGLSL.m_specularLocation, 10);
+    glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Draw
+    m_tardis.render();
 
 	// Unbind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

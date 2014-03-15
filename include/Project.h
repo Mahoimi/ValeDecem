@@ -29,10 +29,11 @@ class Project {
 private:
 	sf::Window m_window;
 
-	Cube m_cube;
+    Cube m_cube;
 	Plane m_floorPlane;
 	Plane m_blitPlane;
-    MeshRenderer m_phoenix;
+    MeshRenderer m_sponza;
+    MeshRenderer m_tardis;
 
 	PointLight m_pointLight;
 	DirectionalLight m_directionalLight;
