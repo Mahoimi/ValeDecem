@@ -25,6 +25,7 @@ void Project::init(){
     m_pointLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/pointLight.fs.glsl");
     m_directionalLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/directionalLight.fs.glsl");
     m_spotLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/spotLight.fs.glsl");
+    m_shadowGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/shadow.fs.glsl");
 
 	// Set uniform locations
     m_skyboxGLSL.m_modelLocation = m_skyboxGLSL.m_program.getUniformLocation("Model");
@@ -43,6 +44,10 @@ void Project::init(){
     m_meshGLSL.m_projectionLocation = m_gbufferGLSL.m_program.getUniformLocation("Projection");
     m_meshGLSL.m_diffuseLocation = m_gbufferGLSL.m_program.getUniformLocation("Diffuse");
     m_meshGLSL.m_specularLocation = m_gbufferGLSL.m_program.getUniformLocation("Specular");
+
+    m_shadowGLSL.m_modelLocation = m_shadowGLSL.m_program.getUniformLocation("Model");
+    m_shadowGLSL.m_viewLocation = m_shadowGLSL.m_program.getUniformLocation("View");
+    m_shadowGLSL.m_projectionLocation = m_shadowGLSL.m_program.getUniformLocation("Projection");
 
 	m_blitGLSL.m_modelLocation = m_blitGLSL.m_program.getUniformLocation("Model");
 	m_blitGLSL.m_viewLocation = m_blitGLSL.m_program.getUniformLocation("View");
@@ -69,7 +74,7 @@ void Project::init(){
 
 	m_spotLightGLSL.m_cameraPositionLocation = m_spotLightGLSL.m_program.getUniformLocation("CameraPosition");
 	m_spotLightGLSL.m_inverseViewProjectionLocation = m_spotLightGLSL.m_program.getUniformLocation("InverseViewProjection");
-	m_spotLightGLSL.m_lightPositionLocation = m_pointLightGLSL.m_program.getUniformLocation("LightPosition");
+    m_spotLightGLSL.m_lightPositionLocation = m_spotLightGLSL.m_program.getUniformLocation("LightPosition");
 	m_spotLightGLSL.m_lightDirectionLocation = m_spotLightGLSL.m_program.getUniformLocation("LightDirection");
 	m_spotLightGLSL.m_lightColorLocation = m_spotLightGLSL.m_program.getUniformLocation("LightColor");
 	m_spotLightGLSL.m_lightIntensityLocation = m_spotLightGLSL.m_program.getUniformLocation("LightIntensity");
@@ -93,6 +98,9 @@ void Project::init(){
 	// Set GBuffer for deferred rendering
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
 
+    // Set ShadowMap for shadow mapping
+    m_shadowMap.init(1024,1024);
+
     // Set framebuffer for post effects with the depth texture of the gbuffer
     m_fxfbo.init(m_window.getSize().x, m_window.getSize().y);
 
@@ -106,7 +114,7 @@ void Project::init(){
 	// Init lights
     m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 1.f);
     m_directionalLight.init(glm::vec3(1, -1, 1), glm::vec3(1, 1, 1), .2f);
-    m_spotLight.init(glm::vec3(0.0, 1.0, 0.0), glm::vec3(-1.0, -1.0, -1.0), glm::vec3(1, 1, 1), 1.f);
+    m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
 }
 
 void Project::getInput(){
@@ -143,6 +151,9 @@ void Project::getInput(){
 void Project::gBufferPass(){
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
+
+    // Set Viewport
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
 	// Use gbuffer shaders
 	m_gbufferGLSL.m_program.use();
@@ -220,12 +231,65 @@ void Project::gBufferPass(){
     glDisable(GL_DEPTH_TEST);
 }
 
+void Project::shadowMappingPass(){
+    // Enable Depth test
+    glEnable(GL_DEPTH_TEST);
+
+    // Use gbuffer shaders
+    m_shadowGLSL.m_program.use();
+
+    // Bind fbo
+    m_shadowMap.bindFramebuffer();
+
+    // Clear the current buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set Viewport
+    glViewport(0, 0, 1024, 1024);
+
+    // BUILD SHADOW MATRICES////////////////////////////////////////////////////////////////////////////////////
+    glm::vec3 lightUp(0.f, 1.f, 0.f);
+
+    glm::mat4 worldToLight = glm::lookAt(m_spotLight.getPosition(), m_spotLight.getDirection(), lightUp);
+    glm::mat4 ligthToShadowMap = glm::perspective(60.f, 1.f, 1.f, 1000.f);
+    glm::mat4 MAT4F_M1_P1_TO_P0_P1(
+      0.5f, 0.f, 0.f, 0.f,
+      0.f, 0.5f, 0.f, 0.f,
+      0.f, 0.f, 0.5f, 0.f,
+      0.5f, 0.5f, 0.5f, 1.f
+    );
+    // Matrice transformant une position dans l'espace du monde en projection dans l'espace de la lumière
+    glm::mat4 worldToShadowMap =  MAT4F_M1_P1_TO_P0_P1 * ligthToShadowMap * worldToLight;
+
+    // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+
+    // Linear transformations
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(50));
+    m_modelMatrix = glm::rotate(m_modelMatrix, -90.f, glm::vec3(1, 0, 0));
+    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
+
+    // Send uniform data
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(ligthToShadowMap));
+    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
+    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(worldToLight));
+    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+    // Draw
+    m_floorPlane.render();
+
+
+    // Unbind framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Disable Depth test
+    glDisable(GL_DEPTH_TEST);
+}
+
 void Project::lightingByPointLight(){
 	// Use pointLight shaders
 	m_pointLightGLSL.m_program.use();
-
-	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
 	// Send uniform value
 	glUniform1i(m_pointLightGLSL.m_materialLocation, 0);
@@ -256,9 +320,6 @@ void Project::lightingByDirectionalLight(){
 	// Use directionalLight shaders
 	m_directionalLightGLSL.m_program.use();
 
-	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
-
 	// Send uniform value
 	glUniform1i(m_directionalLightGLSL.m_materialLocation, 0);
 	glUniform1i(m_directionalLightGLSL.m_normalLocation, 1);
@@ -287,9 +348,6 @@ void Project::lightingByDirectionalLight(){
 void Project::lightingBySpotLight(){
 	// Use spotLight shaders
 	m_spotLightGLSL.m_program.use();
-
-	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
 	// Send uniform value
 	glUniform1i(m_spotLightGLSL.m_materialLocation, 0);
@@ -326,8 +384,8 @@ void Project::lightingPass(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
-	lightingByPointLight();
-	lightingByDirectionalLight();
+    //lightingByPointLight();
+    lightingByDirectionalLight();
 	lightingBySpotLight();
 
     glDisable(GL_BLEND);
@@ -354,9 +412,6 @@ void Project::skyboxPass(){
     m_modelMatrix = glm::translate(m_modelMatrix, m_camera.getPosition());
     m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(20.f));
 
-    // Set viewport to all the window
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
-
     // Send uniform data
     glUniform1i(m_skyboxGLSL.m_skyboxTextureLocation, 0);
     glUniformMatrix4fv(m_skyboxGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
@@ -370,7 +425,7 @@ void Project::skyboxPass(){
     m_cube.render();
 
     glDisable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
 
     // Unbind fbo
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
@@ -378,11 +433,8 @@ void Project::skyboxPass(){
 }
 
 void Project::fxPass(){
-    // Use spotLight shaders
+    // Use blit shaders
     m_blitGLSL.m_program.use();
-
-    // Set Viewport
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
     // Send uniform value
     glUniform1i(m_blitGLSL.m_textureLocation, 0);
@@ -402,7 +454,7 @@ void Project::blitPass(){
 	glUniform1i(m_blitGLSL.m_textureLocation, 0);
 
 	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+    glViewport(0, 0, m_window.getSize().x/4, m_window.getSize().y/4);
 
 	// Bind color texture
 	glActiveTexture(GL_TEXTURE0);
@@ -412,7 +464,7 @@ void Project::blitPass(){
 	m_blitPlane.render();
 
 	// Viewport 
-    glViewport(m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+    glViewport(m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
 
 	// Bind normal texture
 	glActiveTexture(GL_TEXTURE0);
@@ -421,14 +473,24 @@ void Project::blitPass(){
 	// Render plane
 	m_blitPlane.render();
 
-	// Viewport
-    glViewport(2*m_window.getSize().x/3, 0, m_window.getSize().x/3, m_window.getSize().y/4);
+    // Viewport
+    glViewport(2*m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
 
 	// Bind depth texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
 
 	// Render plane
+    m_blitPlane.render();
+
+    // Viewport
+    glViewport(3*m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
+
+    // Bind shadowMap texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_shadowMap.getTexture());
+
+    // Render plane
     m_blitPlane.render();
 }
 
@@ -471,6 +533,8 @@ void Project::run(){
 		
 		// Render the geometry in the gbuffer
         gBufferPass();
+
+        //shadowMappingPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
         lightingPass();

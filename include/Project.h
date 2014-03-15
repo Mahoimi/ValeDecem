@@ -16,6 +16,7 @@
 #include <CubemapTexture.h>
 #include <GLTexture.h>
 #include <GBuffer.h>
+#include <ShadowMap.h>
 #include <Mesh.h>
 #include <FXFbo.h>
 
@@ -43,8 +44,11 @@ private:
 
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
+
 	FreeFlyCamera m_camera;
+
 	GBuffer m_gbuffer;
+    ShadowMap m_shadowMap;
     FXFbo m_fxfbo;
 
     struct SkyboxGLSL {
@@ -128,6 +132,15 @@ private:
 	};
 	SpotLightGLSL m_spotLightGLSL;
 
+    struct ShadowGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLProgram m_program;
+
+        ShadowGLSL(){}
+    };
+    ShadowGLSL m_shadowGLSL;
 
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
@@ -141,6 +154,7 @@ private:
 	void getInput();
     void skyboxPass();
 	void gBufferPass();
+    void shadowMappingPass();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();
 	void lightingBySpotLight();
