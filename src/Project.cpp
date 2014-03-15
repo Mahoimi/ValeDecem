@@ -78,9 +78,12 @@ void Project::init(){
 	m_spotLightGLSL.m_lightDirectionLocation = m_spotLightGLSL.m_program.getUniformLocation("LightDirection");
 	m_spotLightGLSL.m_lightColorLocation = m_spotLightGLSL.m_program.getUniformLocation("LightColor");
 	m_spotLightGLSL.m_lightIntensityLocation = m_spotLightGLSL.m_program.getUniformLocation("LightIntensity");
+    m_spotLightGLSL.m_lightProjectionLocation = m_spotLightGLSL.m_program.getUniformLocation("LightProjection");
+    m_spotLightGLSL.m_shadowBiasLocation = m_spotLightGLSL.m_program.getUniformLocation("ShadowBias");
 	m_spotLightGLSL.m_materialLocation = m_spotLightGLSL.m_program.getUniformLocation("Material");
 	m_spotLightGLSL.m_normalLocation = m_spotLightGLSL.m_program.getUniformLocation("Normal");
 	m_spotLightGLSL.m_depthLocation = m_spotLightGLSL.m_program.getUniformLocation("Depth");
+    m_spotLightGLSL.m_shadowLocation = m_spotLightGLSL.m_program.getUniformLocation("Shadow");
 
 	// Load texture
     m_diffuseTexture.load("../../assets/textures/spnza_bricks_a_diff.tga");
@@ -247,20 +250,6 @@ void Project::shadowMappingPass(){
     // Set Viewport
     glViewport(0, 0, 1024, 1024);
 
-    // BUILD SHADOW MATRICES////////////////////////////////////////////////////////////////////////////////////
-    glm::vec3 lightUp(0.f, 1.f, 0.f);
-
-    glm::mat4 worldToLight = glm::lookAt(m_spotLight.getPosition(), m_spotLight.getDirection(), lightUp);
-    glm::mat4 ligthToShadowMap = glm::perspective(60.f, 1.f, 1.f, 1000.f);
-    glm::mat4 MAT4F_M1_P1_TO_P0_P1(
-      0.5f, 0.f, 0.f, 0.f,
-      0.f, 0.5f, 0.f, 0.f,
-      0.f, 0.f, 0.5f, 0.f,
-      0.5f, 0.5f, 0.5f, 1.f
-    );
-    // Matrice transformant une position dans l'espace du monde en projection dans l'espace de la lumière
-    glm::mat4 worldToShadowMap =  MAT4F_M1_P1_TO_P0_P1 * ligthToShadowMap * worldToLight;
-
     // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
@@ -271,20 +260,52 @@ void Project::shadowMappingPass(){
     m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
 
     // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(ligthToShadowMap));
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
     // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(worldToLight));
+    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
     glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
     // Draw
     m_floorPlane.render();
 
+    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    //m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-3,-0.5f,0));
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
+
+    // Send uniform data
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
+    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
+    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
+    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+    // Draw
+    m_sponza.render();
+
+    // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
+    // Send uniform data
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
+    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
+    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
+    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+    // Draw
+    m_tardis.render();
 
     // Unbind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Disable Depth test
     glDisable(GL_DEPTH_TEST);
+
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 }
 
 void Project::lightingByPointLight(){
@@ -349,10 +370,12 @@ void Project::lightingBySpotLight(){
 	// Use spotLight shaders
 	m_spotLightGLSL.m_program.use();
 
+
 	// Send uniform value
 	glUniform1i(m_spotLightGLSL.m_materialLocation, 0);
 	glUniform1i(m_spotLightGLSL.m_normalLocation, 1);
 	glUniform1i(m_spotLightGLSL.m_depthLocation, 2);
+    glUniform1i(m_spotLightGLSL.m_shadowLocation, 3);
 
 	glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(m_projectionMatrix * m_viewMatrix));
 
@@ -363,14 +386,19 @@ void Project::lightingBySpotLight(){
 	glUniform3fv(m_spotLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_spotLight.getPosition()));
 	glUniform3fv(m_spotLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_spotLight.getColor()));
 	glUniform1f(m_spotLightGLSL.m_lightIntensityLocation, m_spotLight.getIntensity());
+    glUniformMatrix4fv(m_spotLightGLSL.m_lightProjectionLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToShadowMap()));
+    glUniform1f(m_spotLightGLSL.m_shadowBiasLocation, 0.001f);
 
-	// Bind textures : material, normal and depth
+
+    // Bind textures : material, normal, depth and shadow
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_shadowMap.getTexture());
 
 	m_blitPlane.render();
 }
@@ -534,7 +562,8 @@ void Project::run(){
 		// Render the geometry in the gbuffer
         gBufferPass();
 
-        //shadowMappingPass();
+        // Create the lights shadow maps
+        shadowMappingPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
         lightingPass();

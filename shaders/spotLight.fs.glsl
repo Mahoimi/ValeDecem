@@ -5,6 +5,7 @@ in vec2 v_UV;
 uniform sampler2D Material;
 uniform sampler2D Normal;
 uniform sampler2D Depth;
+uniform sampler2D Shadow;
 
 uniform vec3 CameraPosition;
 uniform vec3  LightPosition;
@@ -12,6 +13,8 @@ uniform vec3 LightDirection;
 uniform vec3 LightColor;
 uniform float LightIntensity;
 uniform mat4 InverseViewProjection;
+uniform mat4  LightProjection;
+uniform float ShadowBias;
 
 out vec4  Color;
 
@@ -72,5 +75,29 @@ void main(void)
 		color =  falloff * LightColor * LightIntensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * coeffSpec));
 	}
 	
-	Color = vec4(color, 1.0);
+        // Shadows**********************************************************************
+
+        // Projection de la position world en position "light"
+        vec4 wlightSpacePosition = LightProjection * vec4(position, 1.0);
+        vec3 lightSpacePosition = vec3(wlightSpacePosition/wlightSpacePosition.w);
+
+
+        // Use the shadow map on area covered by the depth buffer
+        if(lightSpacePosition.x > 0.0 && lightSpacePosition.x < 1.0 &&
+                lightSpacePosition.y > 0.0 && lightSpacePosition.y < 1.0 &&
+                wlightSpacePosition.w  >0.0)
+        {
+
+                float shadowRead = texture(Shadow, vec2(lightSpacePosition.x, lightSpacePosition.y)).r;
+
+                if(lightSpacePosition.z-shadowRead < ShadowBias) //Lighting
+                    Color = vec4(color, 1.0);
+
+                else //Shadow
+                    Color = vec4(0.0,0.0,0.0,1.0);
+        }
+
+        // Outside the area covered by the depth buffer, use "classic" lighting
+        else Color = vec4(color, 1.0);
+
 }

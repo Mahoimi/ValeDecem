@@ -123,9 +123,12 @@ private:
 		GLuint m_lightColorLocation;
 		GLuint m_lightIntensityLocation;
 		GLuint m_cameraPositionLocation;
+        GLuint m_shadowBiasLocation;
+        GLuint m_lightProjectionLocation;
 		GLuint m_materialLocation;
 		GLuint m_normalLocation;
 		GLuint m_depthLocation;
+        GLuint m_shadowLocation;
 		GLProgram m_program;
 
 		SpotLightGLSL(){}
