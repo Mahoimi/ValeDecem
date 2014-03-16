@@ -22,6 +22,7 @@ void Project::init(){
     m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
     m_meshGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/mesh.fs.glsl");
     m_blitGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/blit.fs.glsl");
+    m_ambiantLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/ambiantLight.fs.glsl");
     m_pointLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/pointLight.fs.glsl");
     m_directionalLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/directionalLight.fs.glsl");
     m_spotLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/spotLight.fs.glsl");
@@ -53,6 +54,10 @@ void Project::init(){
 	m_blitGLSL.m_viewLocation = m_blitGLSL.m_program.getUniformLocation("View");
 	m_blitGLSL.m_projectionLocation = m_blitGLSL.m_program.getUniformLocation("Projection");
 	m_blitGLSL.m_textureLocation = m_blitGLSL.m_program.getUniformLocation("Texture");
+
+    m_ambiantLightGLSL.m_lightColorLocation = m_ambiantLightGLSL.m_program.getUniformLocation("LightColor");
+    m_ambiantLightGLSL.m_lightIntensityLocation = m_ambiantLightGLSL.m_program.getUniformLocation("LightIntensity");
+    m_ambiantLightGLSL.m_materialLocation = m_ambiantLightGLSL.m_program.getUniformLocation("Material");
 
 	m_pointLightGLSL.m_cameraPositionLocation = m_pointLightGLSL.m_program.getUniformLocation("CameraPosition");
 	m_pointLightGLSL.m_inverseViewProjectionLocation = m_pointLightGLSL.m_program.getUniformLocation("InverseViewProjection");
@@ -115,6 +120,7 @@ void Project::init(){
     m_tardis.load("../../assets/tardis/tardis.obj");
 
 	// Init lights
+    m_ambiantLight.init(glm::vec3(1, 1, 1), 0.1f);
     m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 1.f);
     m_directionalLight.init(glm::vec3(1, -1, 1), glm::vec3(1, 1, 1), .2f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
@@ -308,6 +314,23 @@ void Project::shadowMappingPass(){
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 }
 
+void Project::lightingByAmbiantLight(){
+    // Use pointLight shaders
+    m_ambiantLightGLSL.m_program.use();
+
+    // Send uniform value
+    glUniform1i(m_ambiantLightGLSL.m_materialLocation, 0);
+
+    glUniform3fv(m_ambiantLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_ambiantLight.getColor()));
+    glUniform1f(m_ambiantLightGLSL.m_lightIntensityLocation, m_ambiantLight.getIntensity());
+
+    // Bind textures : material
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
+
+    m_blitPlane.render();
+}
+
 void Project::lightingByPointLight(){
 	// Use pointLight shaders
 	m_pointLightGLSL.m_program.use();
@@ -412,9 +435,10 @@ void Project::lightingPass(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    //lightingByPointLight();
+    lightingByAmbiantLight();
+    lightingByPointLight();
     lightingByDirectionalLight();
-	lightingBySpotLight();
+    lightingBySpotLight();
 
     glDisable(GL_BLEND);
 

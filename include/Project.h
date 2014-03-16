@@ -8,6 +8,7 @@
 
 #include <Cube.h>
 #include <Plane.h>
+#include <AmbiantLight.h>
 #include <PointLight.h>
 #include <DirectionalLight.h>
 #include <SpotLight.h>
@@ -36,6 +37,7 @@ private:
     MeshRenderer m_sponza;
     MeshRenderer m_tardis;
 
+    AmbiantLight m_ambiantLight;
 	PointLight m_pointLight;
 	DirectionalLight m_directionalLight;
 	SpotLight m_spotLight;
@@ -85,6 +87,16 @@ private:
 		BlitGLSL(){}
 	};
 	BlitGLSL m_blitGLSL;
+
+    struct AmbiantLightGLSL {
+        GLuint m_lightColorLocation;
+        GLuint m_lightIntensityLocation;
+        GLuint m_materialLocation;
+        GLProgram m_program;
+
+        AmbiantLightGLSL(){}
+    };
+    AmbiantLightGLSL m_ambiantLightGLSL;
 
 	struct PointLightGLSL {
 		GLuint m_inverseViewProjectionLocation;
@@ -158,6 +170,7 @@ private:
     void skyboxPass();
 	void gBufferPass();
     void shadowMappingPass();
+    void lightingByAmbiantLight();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();
 	void lightingBySpotLight();
