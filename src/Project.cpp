@@ -159,6 +159,12 @@ void Project::getInput(){
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
         m_camera.moveLeft(-speed);
     }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)){
+        m_camera.moveUp(speed);
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)){
+        m_camera.moveUp(-speed);
+    }
 }
 
 void Project::gBufferPass(){
