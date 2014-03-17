@@ -36,8 +36,9 @@ public:
 
     void setShadowMatrices(){
         glm::vec3 lightUp(0.f, 1.f, 0.f);
-        m_worldToLight = glm::lookAt(-m_Direction, glm::vec3(0,0,0), lightUp);
-        m_ligthToShadowMap = glm::ortho(-15.f,15.f,-15.f,15.f,-15.f,15.f);
+        m_worldToLight = glm::lookAt(-m_Direction, glm::vec3(0.f), lightUp);
+        m_ligthToShadowMap = glm::ortho(-7.f,6.f,-15.f, 15.f, -15.f, 15.f);
+        //m_ligthToShadowMap = glm::ortho(-5.f,5.f,-5.f, 5.f, -15.f, 15.f);
         glm::mat4 MAT4F_M1_P1_TO_P0_P1(
           0.5f, 0.f, 0.f, 0.f,
           0.f, 0.5f, 0.f, 0.f,

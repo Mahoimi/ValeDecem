@@ -75,6 +75,8 @@ void Project::init(){
 	m_directionalLightGLSL.m_lightIntensityLocation = m_directionalLightGLSL.m_program.getUniformLocation("LightIntensity");
     m_directionalLightGLSL.m_lightProjectionLocation = m_directionalLightGLSL.m_program.getUniformLocation("LightProjection");
     m_directionalLightGLSL.m_shadowBiasLocation = m_directionalLightGLSL.m_program.getUniformLocation("ShadowBias");
+    m_directionalLightGLSL.m_shadowSamplesLocation = m_directionalLightGLSL.m_program.getUniformLocation("ShadowSamples");
+    m_directionalLightGLSL.m_shadowSampleSpreadLocation = m_directionalLightGLSL.m_program.getUniformLocation("ShadowSampleSpread");
 	m_directionalLightGLSL.m_materialLocation = m_directionalLightGLSL.m_program.getUniformLocation("Material");
 	m_directionalLightGLSL.m_normalLocation = m_directionalLightGLSL.m_program.getUniformLocation("Normal");
 	m_directionalLightGLSL.m_depthLocation = m_directionalLightGLSL.m_program.getUniformLocation("Depth");
@@ -124,9 +126,9 @@ void Project::init(){
     m_tardis.load("../../assets/tardis/tardis.obj");
 
 	// Init lights
-    m_ambiantLight.init(glm::vec3(1, 1, 1), 0.1f);
-    m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 1.f);
-    m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(1, 1, 1), .2f);
+    m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
+    m_pointLight.init(glm::vec3(2, 2, 1), glm::vec3(1, 1, 1), 1.f);
+    m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
 
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
@@ -468,6 +470,8 @@ void Project::lightingByDirectionalLight(){
 	glUniform1f(m_directionalLightGLSL.m_lightIntensityLocation, m_directionalLight.getIntensity());
     glUniformMatrix4fv(m_directionalLightGLSL.m_lightProjectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToShadowMap()));
     glUniform1f(m_directionalLightGLSL.m_shadowBiasLocation, 0.001f);
+    glUniform1f(m_directionalLightGLSL.m_shadowSamplesLocation, 6.f);
+    glUniform1f(m_directionalLightGLSL.m_shadowSampleSpreadLocation, 700.0f);
 
     // Bind textures : material, normal, depth and shadow
 	glActiveTexture(GL_TEXTURE0);
@@ -531,7 +535,7 @@ void Project::lightingPass(){
     lightingByAmbiantLight();
     lightingByPointLight();
     lightingByDirectionalLight();
-    lightingBySpotLight();
+   // lightingBySpotLight();
 
     glDisable(GL_BLEND);
 

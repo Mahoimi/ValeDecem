@@ -123,6 +123,8 @@ private:
 		GLuint m_cameraPositionLocation;
         GLuint m_shadowBiasLocation;
         GLuint m_lightProjectionLocation;
+        GLuint m_shadowSamplesLocation;
+        GLuint m_shadowSampleSpreadLocation;
 		GLuint m_materialLocation;
 		GLuint m_normalLocation;
 		GLuint m_depthLocation;
