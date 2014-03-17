@@ -128,6 +128,9 @@ void Project::init(){
     m_pointLight.init(glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), 1.f);
     m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(1, 1, 1), .2f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
+
+    assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
+    //m_music.play();
 }
 
 void Project::getInput(){

@@ -5,6 +5,7 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
+#include <SFML/Audio/Music.hpp>
 
 #include <Cube.h>
 #include <Plane.h>
@@ -167,6 +168,8 @@ private:
 
 	sf::Vector2i m_mousePosition;
 	sf::Vector2i m_prevMousePosition;
+
+    sf::Music m_music;
 
     bool m_debugMode;
 

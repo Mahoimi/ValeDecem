@@ -47,4 +47,4 @@ add_executable(
         ${source_files}
 )
 
-target_link_libraries(ValeDecem sfml-window sfml-graphics AntTweakBar glew assimp ${OPENGL_LIBRARIES})
+target_link_libraries(ValeDecem sfml-window sfml-graphics sfml-audio AntTweakBar glew assimp ${OPENGL_LIBRARIES})
