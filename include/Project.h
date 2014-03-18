@@ -38,6 +38,7 @@ private:
 	Plane m_blitPlane;
     MeshRenderer m_sponza;
     MeshRenderer m_tardis;
+    MeshRenderer m_ood;
 
     AmbiantLight m_ambiantLight;
 	PointLight m_pointLight;
@@ -51,8 +52,8 @@ private:
 
 	FreeFlyCamera m_camera;
 
-	GBuffer m_gbuffer;
-    ShadowMap m_shadowMapSpotLight;
+    GBuffer m_gbuffer;
+    //ShadowMap m_shadowMapSpotLight;
     ShadowMap m_shadowMapDirectionnalLight;
     FXFbo m_fxfbo;
 
@@ -78,7 +79,19 @@ private:
 		GBufferGLSL(){}
 	};
     GBufferGLSL m_gbufferGLSL;
-    GBufferGLSL m_meshGLSL;
+    GBufferGLSL m_texturedMeshGLSL;
+
+    struct MeshGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLuint m_colorLocation;
+        GLuint m_specularLocation;
+        GLProgram m_program;
+
+        MeshGLSL(){}
+    };
+    MeshGLSL m_meshGLSL;
 
 	struct BlitGLSL {
 		GLuint m_modelLocation;
@@ -222,7 +235,7 @@ private:
     bool m_debugMode;
 
 	void getInput();
-    void skyboxPass();
+    void unlightPass();
 	void gBufferPass();
     void shadowMappingPass();
     void lightingByAmbiantLight();

@@ -4,8 +4,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <AntTweakBar.h>
-
 void Project::init(){
 	// Vertical synchronization
 	m_window.setVerticalSyncEnabled(true);
@@ -23,6 +21,7 @@ void Project::init(){
     m_skyboxGLSL.m_program.load("../../shaders/skybox.vs.glsl", "../../shaders/skybox.fs.glsl");
     m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
     m_meshGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/mesh.fs.glsl");
+    m_texturedMeshGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/texturedMesh.fs.glsl");
     m_blitGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/blit.fs.glsl");
     m_ambiantLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/ambiantLight.fs.glsl");
     m_pointLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/pointLight.fs.glsl");
@@ -45,11 +44,17 @@ void Project::init(){
 	m_gbufferGLSL.m_diffuseLocation = m_gbufferGLSL.m_program.getUniformLocation("Diffuse");
 	m_gbufferGLSL.m_specularLocation = m_gbufferGLSL.m_program.getUniformLocation("Specular");
 
-    m_meshGLSL.m_modelLocation = m_gbufferGLSL.m_program.getUniformLocation("Model");
-    m_meshGLSL.m_viewLocation = m_gbufferGLSL.m_program.getUniformLocation("View");
-    m_meshGLSL.m_projectionLocation = m_gbufferGLSL.m_program.getUniformLocation("Projection");
-    m_meshGLSL.m_diffuseLocation = m_gbufferGLSL.m_program.getUniformLocation("Diffuse");
-    m_meshGLSL.m_specularLocation = m_gbufferGLSL.m_program.getUniformLocation("Specular");
+    m_meshGLSL.m_modelLocation = m_meshGLSL.m_program.getUniformLocation("Model");
+    m_meshGLSL.m_viewLocation = m_meshGLSL.m_program.getUniformLocation("View");
+    m_meshGLSL.m_projectionLocation = m_meshGLSL.m_program.getUniformLocation("Projection");
+    m_meshGLSL.m_colorLocation = m_meshGLSL.m_program.getUniformLocation("MeshColor");
+    m_meshGLSL.m_specularLocation = m_meshGLSL.m_program.getUniformLocation("Specular");
+
+    m_texturedMeshGLSL.m_modelLocation = m_texturedMeshGLSL.m_program.getUniformLocation("Model");
+    m_texturedMeshGLSL.m_viewLocation = m_texturedMeshGLSL.m_program.getUniformLocation("View");
+    m_texturedMeshGLSL.m_projectionLocation = m_texturedMeshGLSL.m_program.getUniformLocation("Projection");
+    m_texturedMeshGLSL.m_diffuseLocation = m_texturedMeshGLSL.m_program.getUniformLocation("Diffuse");
+    m_texturedMeshGLSL.m_specularLocation = m_texturedMeshGLSL.m_program.getUniformLocation("Specular");
 
     m_shadowGLSL.m_modelLocation = m_shadowGLSL.m_program.getUniformLocation("Model");
     m_shadowGLSL.m_viewLocation = m_shadowGLSL.m_program.getUniformLocation("View");
@@ -137,7 +142,7 @@ void Project::init(){
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
 
     // Set ShadowMaps for shadow mapping
-    m_shadowMapSpotLight.init(1024,1024);
+    //m_shadowMapSpotLight.init(1024,1024);
     m_shadowMapDirectionnalLight.init(2048,2048);
 
     // Set framebuffer for post effects with the depth texture of the gbuffer
@@ -149,6 +154,7 @@ void Project::init(){
 	m_blitPlane.init(1.f);
     m_sponza.load("../../assets/sponza/sponza.obj");
     m_tardis.load("../../assets/tardis/tardis.obj");
+    m_ood.load("../../assets/ood/ood.obj");
 
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
@@ -270,7 +276,7 @@ void Project::gBufferPass(){
     // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
 
     // Use mesh shader
-    m_meshGLSL.m_program.use();
+    m_texturedMeshGLSL.m_program.use();
 
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
@@ -278,11 +284,11 @@ void Project::gBufferPass(){
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
 
     // Send uniform data
-    glUniform1i(m_meshGLSL.m_diffuseLocation, 0);
-    glUniform1i(m_meshGLSL.m_specularLocation, 10);
-    glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+    glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
+    glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
     // Draw
     m_sponza.render();
@@ -294,19 +300,19 @@ void Project::gBufferPass(){
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
 
     // Send uniform data
-    glUniform1i(m_meshGLSL.m_diffuseLocation, 0);
-    glUniform1i(m_meshGLSL.m_specularLocation, 10);
-    glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+    glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
+    glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
     // Draw
     m_tardis.render();
 
-	// Unbind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Unbind fbo
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Disable Depth test
+    // Disable Depth test
     glDisable(GL_DEPTH_TEST);
 }
 
@@ -335,9 +341,8 @@ void Project::shadowMappingPass(){
     m_modelMatrix = glm::rotate(m_modelMatrix, -90.f, glm::vec3(1, 0, 0));
     m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
 
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
+    // Send uniform values
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
     glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
     glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
@@ -352,9 +357,6 @@ void Project::shadowMappingPass(){
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
 
     // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
     glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
     // Draw
@@ -367,13 +369,24 @@ void Project::shadowMappingPass(){
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
 
     // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
     glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
     // Draw
     m_tardis.render();
+
+    // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+
+
+    // Send uniform data
+    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+    // Draw
+    m_ood.render();
 
     // Unbind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -383,7 +396,6 @@ void Project::shadowMappingPass(){
 
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 }
-
 
 void Project::lightingByAmbiantLight(){
     // Use pointLight shaders
@@ -468,7 +480,7 @@ void Project::lightingByDirectionalLight(){
 }
 
 void Project::lightingBySpotLight(){
-	// Use spotLight shaders
+    /*// Use spotLight shaders
 	m_spotLightGLSL.m_program.use();
 
 
@@ -501,9 +513,8 @@ void Project::lightingBySpotLight(){
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapSpotLight.getTexture());
 
-	m_blitPlane.render();
+    m_blitPlane.render();*/
 }
-
 
 void Project::lightingPass(){
     m_fxfbo.bindFramebufferWith(0);
@@ -524,7 +535,7 @@ void Project::lightingPass(){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Project::skyboxPass(){
+void Project::unlightPass(){
     m_fxfbo.bindFramebufferWith(0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_gbuffer.getTexture(2), 0);
 
@@ -540,7 +551,7 @@ void Project::skyboxPass(){
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
     m_modelMatrix = glm::translate(m_modelMatrix, m_camera.getPosition());
-    m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(20.f));
+    m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(0.1f));
 
     // Send uniform data
     glUniform1i(m_skyboxGLSL.m_skyboxTextureLocation, 0);
@@ -553,6 +564,25 @@ void Project::skyboxPass(){
 
     // Draw
     m_cube.render();
+
+    // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
+    m_meshGLSL.m_program.use();
+
+    // Reset model matrix
+    m_modelMatrix = glm::mat4(1.f);
+    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+
+    // Send uniform data
+    glUniform3fv(m_meshGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
+    glUniform1i(m_meshGLSL.m_specularLocation, 1);
+    glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Draw
+    m_ood.render();
+
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -609,7 +639,7 @@ void Project::fxPass(){
 
     m_blitPlane.render();
 
-    // PRINT RESULT //////////////
+    // DEPTH OF FIELD //////////////
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
@@ -640,8 +670,9 @@ void Project::blitPass(){
 	// Send uniform value
 	glUniform1i(m_blitGLSL.m_textureLocation, 0);
 
+    // DIFFUSE TEXTURE ///////////////////////////////////////////////////
 	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x/4, m_window.getSize().y/4);
+    glViewport(0, 0, m_window.getSize().x/7, m_window.getSize().y/7);
 
 	// Bind color texture
 	glActiveTexture(GL_TEXTURE0);
@@ -650,8 +681,9 @@ void Project::blitPass(){
 	// Render plane
 	m_blitPlane.render();
 
+    // NORMAL TEXTURE ///////////////////////////////////////////////////
 	// Viewport 
-    glViewport(m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
+    glViewport(m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
 
 	// Bind normal texture
 	glActiveTexture(GL_TEXTURE0);
@@ -660,8 +692,9 @@ void Project::blitPass(){
 	// Render plane
 	m_blitPlane.render();
 
+    // DEPTH TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(2*m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
+    glViewport(2*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
 
 	// Bind depth texture
 	glActiveTexture(GL_TEXTURE0);
@@ -670,12 +703,46 @@ void Project::blitPass(){
 	// Render plane
     m_blitPlane.render();
 
+    // SHADOWMAP TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(3*m_window.getSize().x/4, 0, m_window.getSize().x/4, m_window.getSize().y/4);
+    glViewport(3*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
 
     // Bind shadowMap texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapDirectionnalLight.getTexture());
+
+    // Render plane
+    m_blitPlane.render();
+
+    // LIGHTEDSCENE TEXTURE ///////////////////////////////////////////////////
+    // Viewport
+    glViewport(4*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+
+    // Bind normal texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+
+    // Render plane
+    m_blitPlane.render();
+
+    // COC TEXTURE ///////////////////////////////////////////////////
+    // Viewport
+    glViewport(5*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+
+    // Bind depth texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(1));
+
+    // Render plane
+    m_blitPlane.render();
+
+    // BLUR TEXTURE ///////////////////////////////////////////////////
+    // Viewport
+    glViewport(6*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+
+    // Bind shadowMap texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
 
     // Render plane
     m_blitPlane.render();
@@ -734,7 +801,7 @@ void Project::run(){
         lightingPass();
 
         // Render the skybox
-        skyboxPass();
+        unlightPass();
 
         // Post-effects techniques (DoF)
         fxPass();

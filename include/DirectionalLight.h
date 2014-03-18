@@ -68,7 +68,7 @@ public:
     glm::mat4 getWorldToLight() const{
         return m_worldToLight;
     }
-    glm::mat4 getLigthToShadowMap() const{
+    glm::mat4 getLightToShadowMap() const{
         return m_ligthToShadowMap;
     }
     glm::mat4 getWorldToShadowMap() const{
