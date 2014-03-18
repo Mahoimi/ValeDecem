@@ -21,6 +21,7 @@
 #include <ShadowMap.h>
 #include <Mesh.h>
 #include <FXFbo.h>
+#include <GUI.h>
 
 /*!
 * \class Project
@@ -167,6 +168,8 @@ private:
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
+
+    GUI m_gui;
 
 	sf::Vector2i m_mousePosition;
 	sf::Vector2i m_prevMousePosition;

@@ -4,6 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <AntTweakBar.h>
+
 void Project::init(){
 	// Vertical synchronization
 	m_window.setVerticalSyncEnabled(true);
@@ -131,8 +133,15 @@ void Project::init(){
     m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
 
+    // Init music
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
     //m_music.play();
+
+    // Init GUI
+    m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
+
+    m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'", true);
+    m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01", true);
 }
 
 void Project::getInput(){
@@ -143,7 +152,7 @@ void Project::getInput(){
 	m_mousePosition = sf::Mouse::getPosition(m_window);
 
 	// Move the camera according to the mouse position when the left clic is pressed
-	if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+    if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
         m_camera.rotateLeft(-0.4f*(m_mousePosition.x - m_prevMousePosition.x));
         m_camera.rotateUp(-0.4f*(m_mousePosition.y - m_prevMousePosition.y));
     }
@@ -654,20 +663,24 @@ void Project::run(){
         sf::Event event;
         while (m_window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+            int handled = TwEventSFML(&event, 2,1);
+            if(!handled)
             {
-                // end the program
-                running = false;
-            }
-            else if (event.type == sf::Event::Resized)
-            {
-                // adjust the viewport when the window is resized
-                glViewport(0, 0, event.size.width, event.size.height);
-            }
-            else if (event.type == sf::Event::KeyPressed){
-                // Switch to debug mode
-                if (event.key.code == sf::Keyboard::D){
-                    m_debugMode = !m_debugMode;
+                if (event.type == sf::Event::Closed)
+                {
+                    // end the program
+                    running = false;
+                }
+                else if (event.type == sf::Event::Resized)
+                {
+                    // adjust the viewport when the window is resized
+                    glViewport(0, 0, event.size.width, event.size.height);
+                }
+                else if (event.type == sf::Event::KeyPressed){
+                    // Switch to debug mode
+                    if (event.key.code == sf::Keyboard::D){
+                        m_debugMode = !m_debugMode;
+                    }
                 }
             }
         }
@@ -701,7 +714,7 @@ void Project::run(){
             blitPass();
 
             // GUI
-
+            m_gui.draw();
         }
 
         // end the current frame (internally swaps the front and back buffers)
