@@ -6,8 +6,7 @@
 class FXFbo{
 private :
     GLuint m_framebuffer;
-    GLuint m_colorTexture;
-    GLuint m_drawbuffer;
+    GLuint m_textures[3];
 
     // We don't want an unexpected copy of an instance of this class
     FXFbo(const FXFbo&);
@@ -16,8 +15,8 @@ private :
 public :
     FXFbo(){}
     void init(const unsigned int width, const unsigned int height);
-    void bindFramebuffer() const;
-    const GLuint& getTexture() const;
+    void bindFramebufferWith(unsigned int textureNumber);
+    const GLuint& getTexture(unsigned int index);
     ~FXFbo();
 };
 

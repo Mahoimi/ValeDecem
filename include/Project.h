@@ -165,9 +165,51 @@ private:
     };
     ShadowGLSL m_shadowGLSL;
 
+    struct BlurGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLuint m_textureLocation;
+        GLuint m_sampleCountLocation;
+        GLProgram m_program;
+
+        BlurGLSL(){}
+    };
+    BlurGLSL m_blurGLSL;
+
+    struct CocGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLuint m_depthLocation;
+        GLuint m_screenToViewLocation;
+        GLuint m_focusLocation;
+        GLProgram m_program;
+
+        CocGLSL(){}
+    };
+    CocGLSL m_cocGLSL;
+
+    struct DofGLSL {
+        GLuint m_modelLocation;
+        GLuint m_viewLocation;
+        GLuint m_projectionLocation;
+        GLuint m_colorLocation;
+        GLuint m_blurLocation;
+        GLuint m_cocLocation;
+        GLProgram m_program;
+
+        DofGLSL(){}
+    };
+    DofGLSL m_dofGLSL;
+
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
+
+    glm::mat4 m_screenToView;
+    glm::vec3 m_focus;
+    float m_sampleCount;
 
     GUI m_gui;
 
@@ -183,7 +225,6 @@ private:
     void skyboxPass();
 	void gBufferPass();
     void shadowMappingPass();
-    void shadowMappingPass2();
     void lightingByAmbiantLight();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();

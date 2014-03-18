@@ -29,6 +29,9 @@ void Project::init(){
     m_directionalLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/directionalLight.fs.glsl");
     m_spotLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/spotLight.fs.glsl");
     m_shadowGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/shadow.fs.glsl");
+    m_blurGLSL.m_program.load("../../shaders/blit.vs.glsl","../../shaders/blur.fs.glsl");
+    m_cocGLSL.m_program.load("../../shaders/blit.vs.glsl","../../shaders/coc.fs.glsl");
+    m_dofGLSL.m_program.load("../../shaders/blit.vs.glsl","../../shaders/dof.fs.glsl");
 
 	// Set uniform locations
     m_skyboxGLSL.m_modelLocation = m_skyboxGLSL.m_program.getUniformLocation("Model");
@@ -97,6 +100,26 @@ void Project::init(){
 	m_spotLightGLSL.m_depthLocation = m_spotLightGLSL.m_program.getUniformLocation("Depth");
     m_spotLightGLSL.m_shadowLocation = m_spotLightGLSL.m_program.getUniformLocation("Shadow");
 
+    m_blurGLSL.m_modelLocation = m_blurGLSL.m_program.getUniformLocation("Model");
+    m_blurGLSL.m_viewLocation = m_blurGLSL.m_program.getUniformLocation("View");
+    m_blurGLSL.m_projectionLocation = m_blurGLSL.m_program.getUniformLocation("Projection");
+    m_blurGLSL.m_textureLocation = m_blurGLSL.m_program.getUniformLocation("Texture");
+    m_blurGLSL.m_sampleCountLocation = m_blurGLSL.m_program.getUniformLocation("SampleCount");
+
+    m_cocGLSL.m_modelLocation = m_cocGLSL.m_program.getUniformLocation("Model");
+    m_cocGLSL.m_viewLocation = m_cocGLSL.m_program.getUniformLocation("View");
+    m_cocGLSL.m_projectionLocation = m_cocGLSL.m_program.getUniformLocation("Projection");
+    m_cocGLSL.m_screenToViewLocation = m_cocGLSL.m_program.getUniformLocation("ScreenToView");
+    m_cocGLSL.m_depthLocation = m_cocGLSL.m_program.getUniformLocation("Depth");
+    m_cocGLSL.m_focusLocation = m_cocGLSL.m_program.getUniformLocation("Focus");
+
+    m_dofGLSL.m_modelLocation = m_dofGLSL.m_program.getUniformLocation("Model");
+    m_dofGLSL.m_viewLocation = m_dofGLSL.m_program.getUniformLocation("View");
+    m_dofGLSL.m_projectionLocation = m_dofGLSL.m_program.getUniformLocation("Projection");
+    m_dofGLSL.m_colorLocation = m_dofGLSL.m_program.getUniformLocation("Color");
+    m_dofGLSL.m_cocLocation = m_dofGLSL.m_program.getUniformLocation("CoC");
+    m_dofGLSL.m_blurLocation = m_dofGLSL.m_program.getUniformLocation("Blur");
+
 	// Load texture
     m_diffuseTexture.load("../../assets/textures/spnza_bricks_a_diff.tga");
     m_specularTexture.load("../../assets/textures/spnza_bricks_a_spec.tga");
@@ -133,6 +156,10 @@ void Project::init(){
     m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6.f, 1800.0f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
 
+    // Fx parameters
+    m_focus = glm::vec3(5.f, 1.f, 50.f);
+    m_sampleCount = 10.f;
+
     // Init music
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
     //m_music.play();
@@ -150,12 +177,17 @@ void Project::init(){
     m_gui.addParameter(&m_pointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='PointLight' label='Color'");
     m_gui.addParameter(&m_pointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='PointLight' label='Intensity' min=0 max=5 step=0.01");
 
-    m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction' step=0.01");
+    m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction'");
     m_gui.addParameter(&m_directionalLight.getColor(), TW_TYPE_COLOR3F, "directional_color", "group='DirectionalLight' label='Color'");
     m_gui.addParameter(&m_directionalLight.getIntensity(), TW_TYPE_FLOAT, "directional_intensity", "group='DirectionalLight' label='Intensity' min=0 max=5 step=0.01");
     m_gui.addParameter(&m_directionalLight.getShadowBias(), TW_TYPE_FLOAT, "directional_shadowBias", "group='DirectionalLight' label='ShadowBias' min=0 max=5 step=0.001");
     m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1");
     m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50");
+
+    m_gui.addParameter(&m_focus.x, TW_TYPE_FLOAT, "focus_plane", "group='DepthOfField' label='Focus plane' min=0 max=100 step=0.1");
+    m_gui.addParameter(&m_focus.y, TW_TYPE_FLOAT, "focus_near", "group='DepthOfField' label='Focus near' min=0 max=100 step=0.1");
+    m_gui.addParameter(&m_focus.z, TW_TYPE_FLOAT, "focus_far", "group='DepthOfField' label='Focus far' min=0 max=100 step=0.1");
+    m_gui.addParameter(&m_sampleCount, TW_TYPE_FLOAT, "sample_count", "group='DepthOfField' label='Sample count' min=1 max=50");
 }
 
 void Project::getInput(){
@@ -279,80 +311,6 @@ void Project::gBufferPass(){
 }
 
 void Project::shadowMappingPass(){
-    // Enable Depth test
-    glEnable(GL_DEPTH_TEST);
-
-    // Use gbuffer shaders
-    m_shadowGLSL.m_program.use();
-
-    // Clear the current buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Set Viewport
-    glViewport(0, 0, 1024, 1024);
-
-    // Bind fbo
-    m_shadowMapSpotLight.bindFramebuffer();
-
-    // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-
-    // Linear transformations
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(50));
-    m_modelMatrix = glm::rotate(m_modelMatrix, -90.f, glm::vec3(1, 0, 0));
-    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
-
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
-
-    // Draw
-    m_floorPlane.render();
-
-    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    //m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-3,-0.5f,0));
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
-
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
-
-    // Draw
-    m_sponza.render();
-
-    // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_spotLight.getLigthToShadowMap()));
-    // Utilise la lumière comme matrice worlToWiew au lieu de celle de la camera
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToLight()));
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
-
-    // Draw
-    m_tardis.render();
-
-    // Unbind framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Disable Depth test
-    glDisable(GL_DEPTH_TEST);
-
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
-}
-
-void Project::shadowMappingPass2(){
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
 
@@ -548,7 +506,7 @@ void Project::lightingBySpotLight(){
 
 
 void Project::lightingPass(){
-    m_fxfbo.bindFramebuffer();
+    m_fxfbo.bindFramebufferWith(0);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Enable blending
@@ -567,7 +525,7 @@ void Project::lightingPass(){
 }
 
 void Project::skyboxPass(){
-    m_fxfbo.bindFramebuffer();
+    m_fxfbo.bindFramebufferWith(0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_gbuffer.getTexture(2), 0);
 
     glEnable(GL_DEPTH_TEST);
@@ -605,15 +563,72 @@ void Project::skyboxPass(){
 }
 
 void Project::fxPass(){
-    // Use blit shaders
-    m_blitGLSL.m_program.use();
+    // COC ////////////////////////
+    m_fxfbo.bindFramebufferWith(1);
 
-    // Send uniform value
-    glUniform1i(m_blitGLSL.m_textureLocation, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
-    // Bind textures : material, normal and depth
+    m_screenToView = glm::inverse(m_projectionMatrix);
+
+    // Use coc shaders
+    m_cocGLSL.m_program.use();
+
+    glUniform1i(m_cocGLSL.m_depthLocation, 0);
+    glUniform3fv(m_cocGLSL.m_focusLocation,1, glm::value_ptr(m_focus));
+    glUniformMatrix4fv(m_cocGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_cocGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_cocGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+    glUniformMatrix4fv(m_cocGLSL.m_screenToViewLocation, 1, GL_FALSE, glm::value_ptr(m_screenToView));
+
+    // Bind depth texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture());
+    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+
+    m_blitPlane.render();
+
+    // BLUR //////////////////////
+    // Bind framebuffer
+    m_fxfbo.bindFramebufferWith(2);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, m_window.getSize().x / 2, m_window.getSize().y / 2);
+
+    // Use blur shaders
+    m_blurGLSL.m_program.use();
+
+    glUniform1i(m_blurGLSL.m_textureLocation, 0);
+    glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
+    glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Bind depth texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+
+    m_blitPlane.render();
+
+    // PRINT RESULT //////////////
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+    m_dofGLSL.m_program.use();
+    glUniform1i(m_dofGLSL.m_colorLocation, 0);
+    glUniform1i(m_dofGLSL.m_blurLocation, 1);
+    glUniform1i(m_dofGLSL.m_cocLocation, 2);
+    glUniformMatrix4fv(m_dofGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_dofGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_dofGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Bind textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(1));
 
     m_blitPlane.render();
 }
@@ -713,8 +728,7 @@ void Project::run(){
         gBufferPass();
 
         // Create the lights shadow maps
-        //shadowMappingPass();
-        shadowMappingPass2();
+        shadowMappingPass();
 
 		// Use the textures in the gbuffer to calculate the illumination
         lightingPass();
@@ -722,6 +736,7 @@ void Project::run(){
         // Render the skybox
         skyboxPass();
 
+        // Post-effects techniques (DoF)
         fxPass();
 
         // Debugging mode = Blit windows + GUI
