@@ -176,6 +176,7 @@ private:
 
     sf::Music m_music;
 
+    float m_fps;
     bool m_debugMode;
 
 	void getInput();

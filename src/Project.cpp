@@ -140,21 +140,22 @@ void Project::init(){
     // Init GUI
     m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
 
-    m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'", true);
-    m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01", true);
+    m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
+    m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'");
+    m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01");
 
-    m_gui.addParameter(&m_pointLight.getPosition().x, TW_TYPE_FLOAT, "point_positionX", "group='PointLight' label='Position.x' step=0.01", true);
-    m_gui.addParameter(&m_pointLight.getPosition().y, TW_TYPE_FLOAT, "point_positionY", "group='PointLight' label='Position.y' step=0.01", true);
-    m_gui.addParameter(&m_pointLight.getPosition().z, TW_TYPE_FLOAT, "point_positionZ", "group='PointLight' label='Position.z' step=0.01", true);
-    m_gui.addParameter(&m_pointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='PointLight' label='Color'", true);
-    m_gui.addParameter(&m_pointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='PointLight' label='Intensity' min=0 max=5 step=0.01", true);
+    m_gui.addParameter(&m_pointLight.getPosition().x, TW_TYPE_FLOAT, "point_positionX", "group='PointLight' label='Position.x' step=0.01");
+    m_gui.addParameter(&m_pointLight.getPosition().y, TW_TYPE_FLOAT, "point_positionY", "group='PointLight' label='Position.y' step=0.01");
+    m_gui.addParameter(&m_pointLight.getPosition().z, TW_TYPE_FLOAT, "point_positionZ", "group='PointLight' label='Position.z' step=0.01");
+    m_gui.addParameter(&m_pointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='PointLight' label='Color'");
+    m_gui.addParameter(&m_pointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='PointLight' label='Intensity' min=0 max=5 step=0.01");
 
-    m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction' step=0.01", true);
-    m_gui.addParameter(&m_directionalLight.getColor(), TW_TYPE_COLOR3F, "directional_color", "group='DirectionalLight' label='Color'", true);
-    m_gui.addParameter(&m_directionalLight.getIntensity(), TW_TYPE_FLOAT, "directional_intensity", "group='DirectionalLight' label='Intensity' min=0 max=5 step=0.01", true);
-    m_gui.addParameter(&m_directionalLight.getShadowBias(), TW_TYPE_FLOAT, "directional_shadowBias", "group='DirectionalLight' label='ShadowBias' min=0 max=5 step=0.001", true);
-    m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1", true);
-    m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50", true);
+    m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction' step=0.01");
+    m_gui.addParameter(&m_directionalLight.getColor(), TW_TYPE_COLOR3F, "directional_color", "group='DirectionalLight' label='Color'");
+    m_gui.addParameter(&m_directionalLight.getIntensity(), TW_TYPE_FLOAT, "directional_intensity", "group='DirectionalLight' label='Intensity' min=0 max=5 step=0.01");
+    m_gui.addParameter(&m_directionalLight.getShadowBias(), TW_TYPE_FLOAT, "directional_shadowBias", "group='DirectionalLight' label='ShadowBias' min=0 max=5 step=0.001");
+    m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1");
+    m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50");
 }
 
 void Project::getInput(){
@@ -666,6 +667,8 @@ void Project::blitPass(){
 }
 
 void Project::run(){
+    sf::Clock clock;
+
 	m_prevMousePosition = sf::Mouse::getPosition(m_window);
 
     // Run the main loop
@@ -732,5 +735,7 @@ void Project::run(){
 
         // end the current frame (internally swaps the front and back buffers)
         m_window.display();
+
+        m_fps = 1.f/ clock.restart().asSeconds();
     }
 }

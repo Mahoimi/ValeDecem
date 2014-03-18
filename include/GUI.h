@@ -12,7 +12,7 @@ private:
 public:
     GUI():m_bar(nullptr){}
     void init(const unsigned int width, const unsigned int height, const std::string& name);
-    void addParameter(void* parameter, const ETwType& parameterType,const std::string &name, const std::string &definition, bool readandwrite);
+    void addParameter(void* parameter, const ETwType& parameterType,const std::string &name, const std::string &definition, bool readandwrite=true);
     void draw() const;
     void terminate();
 };
