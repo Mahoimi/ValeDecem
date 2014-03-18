@@ -28,15 +28,15 @@ public:
 		m_Intensity = intensity;
 	}
 
-	glm::vec3 getPosition() const{
+    glm::vec3 & getPosition(){
 		return m_Position;
 	}
 
-	glm::vec3 getColor() const{
+    glm::vec3 & getColor(){
 		return m_Color;
 	}
 
-	float getIntensity() const{
+    float & getIntensity(){
 		return m_Intensity;
 	}
 

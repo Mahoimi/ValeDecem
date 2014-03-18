@@ -129,8 +129,8 @@ void Project::init(){
 
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
-    m_pointLight.init(glm::vec3(2, 2, 1), glm::vec3(1, 1, 1), 1.f);
-    m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f);
+    m_pointLight.init(glm::vec3(0.66f, 3.72f, -0.13f), glm::vec3(1, 1, 1), 2.f);
+    m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6.f, 1800.0f);
     m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
 
     // Init music
@@ -142,6 +142,19 @@ void Project::init(){
 
     m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'", true);
     m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01", true);
+
+    m_gui.addParameter(&m_pointLight.getPosition().x, TW_TYPE_FLOAT, "point_positionX", "group='PointLight' label='Position.x' step=0.01", true);
+    m_gui.addParameter(&m_pointLight.getPosition().y, TW_TYPE_FLOAT, "point_positionY", "group='PointLight' label='Position.y' step=0.01", true);
+    m_gui.addParameter(&m_pointLight.getPosition().z, TW_TYPE_FLOAT, "point_positionZ", "group='PointLight' label='Position.z' step=0.01", true);
+    m_gui.addParameter(&m_pointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='PointLight' label='Color'", true);
+    m_gui.addParameter(&m_pointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='PointLight' label='Intensity' min=0 max=5 step=0.01", true);
+
+    m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction' step=0.01", true);
+    m_gui.addParameter(&m_directionalLight.getColor(), TW_TYPE_COLOR3F, "directional_color", "group='DirectionalLight' label='Color'", true);
+    m_gui.addParameter(&m_directionalLight.getIntensity(), TW_TYPE_FLOAT, "directional_intensity", "group='DirectionalLight' label='Intensity' min=0 max=5 step=0.01", true);
+    m_gui.addParameter(&m_directionalLight.getShadowBias(), TW_TYPE_FLOAT, "directional_shadowBias", "group='DirectionalLight' label='ShadowBias' min=0 max=5 step=0.001", true);
+    m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1", true);
+    m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50", true);
 }
 
 void Project::getInput(){
@@ -478,9 +491,9 @@ void Project::lightingByDirectionalLight(){
 	glUniform3fv(m_directionalLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_directionalLight.getColor()));
 	glUniform1f(m_directionalLightGLSL.m_lightIntensityLocation, m_directionalLight.getIntensity());
     glUniformMatrix4fv(m_directionalLightGLSL.m_lightProjectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToShadowMap()));
-    glUniform1f(m_directionalLightGLSL.m_shadowBiasLocation, 0.001f);
-    glUniform1f(m_directionalLightGLSL.m_shadowSamplesLocation, 6.f);
-    glUniform1f(m_directionalLightGLSL.m_shadowSampleSpreadLocation, 700.0f);
+    glUniform1f(m_directionalLightGLSL.m_shadowBiasLocation, m_directionalLight.getShadowBias());
+    glUniform1f(m_directionalLightGLSL.m_shadowSamplesLocation, m_directionalLight.getShadowSamples());
+    glUniform1f(m_directionalLightGLSL.m_shadowSampleSpreadLocation, m_directionalLight.getShadowSampleSpread());
 
     // Bind textures : material, normal, depth and shadow
 	glActiveTexture(GL_TEXTURE0);
@@ -697,7 +710,7 @@ void Project::run(){
         gBufferPass();
 
         // Create the lights shadow maps
-        shadowMappingPass();
+        //shadowMappingPass();
         shadowMappingPass2();
 
 		// Use the textures in the gbuffer to calculate the illumination

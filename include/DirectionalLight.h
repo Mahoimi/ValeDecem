@@ -17,20 +17,24 @@ private:
     glm::mat4 m_worldToLight;
     glm::mat4 m_ligthToShadowMap;
     glm::mat4 m_worldToShadowMap;
+    float m_shadowBias;
+    float m_shadowSamples;
+    float m_shadowSampleSpread;
 
     // We don't want an unexpected copy of an instance of this class
     DirectionalLight(const DirectionalLight&);
     DirectionalLight& operator=(const DirectionalLight&);
 	
 public:
-	DirectionalLight(){}
-	DirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity):
-		m_Direction(direction), m_Color(color), m_Intensity(intensity) {}
+    DirectionalLight(){}
 	
-	void init(glm::vec3 direction, glm::vec3 color, float intensity){
-		m_Direction = direction;
+    void init(glm::vec3 direction, glm::vec3 color, float intensity, float shadowBias, float shadowSamples, float shadowSampleSpread){
+        m_Direction = direction;
 		m_Color = color;
 		m_Intensity = intensity;
+        m_shadowBias = shadowBias;
+        m_shadowSamples = shadowSamples;
+        m_shadowSampleSpread = shadowSampleSpread;
         setShadowMatrices();
 	}
 
@@ -49,15 +53,15 @@ public:
         m_worldToShadowMap =  MAT4F_M1_P1_TO_P0_P1 * m_ligthToShadowMap * m_worldToLight;
     }
 
-	glm::vec3 getDirection() const{
+    glm::vec3 & getDirection(){
 		return m_Direction;
 	}
 
-	glm::vec3 getColor() const{
+    glm::vec3 & getColor(){
 		return m_Color;
 	}
 
-	float getIntensity() const{
+    float & getIntensity(){
 		return m_Intensity;
 	}
 
@@ -69,6 +73,16 @@ public:
     }
     glm::mat4 getWorldToShadowMap() const{
         return m_worldToShadowMap;
+    }
+
+    float & getShadowBias(){
+        return m_shadowBias;
+    }
+    float & getShadowSamples(){
+        return m_shadowSamples;
+    }
+    float & getShadowSampleSpread(){
+        return m_shadowSampleSpread;
     }
 
 	~DirectionalLight(){}
