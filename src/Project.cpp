@@ -157,6 +157,8 @@ void Project::init(){
 
     // Init model matrices
     m_tardisMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+    // TODO : Remplacer par position et rotation de chaque model
+    // Créer une Sponza matrice à initier au début et à ne plus toucher
 
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
@@ -171,6 +173,13 @@ void Project::init(){
     // Init music
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
     //m_music.play();
+
+    // Init animation parameters
+    m_displayTardis = true;
+    m_displayOods = false;
+    m_displaySponza = true;
+    m_animationSequence = '1';
+
 
     // Init GUI
     m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
@@ -254,35 +263,39 @@ void Project::gBufferPass(){
 	// Clear the current buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
-
     // Use mesh shader
     m_texturedMeshGLSL.m_program.use();
 
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
+    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+    if(m_displaySponza){
 
-    // Send uniform data
-    glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
-    glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
 
-    // Draw
-    m_sponza.render();
+        // Send uniform data
+        glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
+        glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+        // Draw
+        m_sponza.render();
+    }
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-    // Send uniform data
-    glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
-    glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_tardisMatrix));
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+    if(m_displayTardis){
+        // Send uniform data
+        glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
+        glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_tardisMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-    // Draw
-    m_tardis.render();
+        // Draw
+        m_tardis.render();
+    }
 
     // Unbind fbo
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -307,40 +320,46 @@ void Project::shadowMappingPass(){
     // Set Viewport
     glViewport(0, 0, 2048, 2048);
 
-    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
-
     // Send uniform data
     glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
     glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
-    // Draw
-    m_sponza.render();
+    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+
+    if(m_displaySponza){
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
+
+        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+        // Draw
+        m_sponza.render();
+    }
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_tardisMatrix));
+    if(m_displayTardis){
+        // Send uniform data
+        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_tardisMatrix));
 
-    // Draw
-    m_tardis.render();
+        // Draw
+        m_tardis.render();
+    }
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+    if(m_displayOods){
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
+        // Send uniform data
+        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
-
-    // Draw
-    m_ood.render();
+        // Draw
+        m_ood.render();
+    }
 
     // Unbind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -434,7 +453,8 @@ void Project::lightingByDirectionalLight(){
 }
 
 void Project::lightingBySpotLight(){
-    /*// Use spotLight shaders
+    /*
+    // Use spotLight shaders
 	m_spotLightGLSL.m_program.use();
 
 
@@ -467,7 +487,8 @@ void Project::lightingBySpotLight(){
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapSpotLight.getTexture());
 
-    m_blitPlane.render();*/
+    m_blitPlane.render();
+    */
 }
 
 void Project::lightingPass(){
@@ -479,8 +500,10 @@ void Project::lightingPass(){
     glBlendFunc(GL_ONE, GL_ONE);
 
     lightingByAmbiantLight();
-    lightingByPointLight();
     lightingByDirectionalLight();
+
+
+    lightingByPointLight();
    // lightingBySpotLight();
 
     glDisable(GL_BLEND);
@@ -520,23 +543,25 @@ void Project::unlightPass(){
     m_cube.render();
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
-    m_meshGLSL.m_program.use();
 
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+    if(m_displayOods){
+        m_meshGLSL.m_program.use();
 
-    // Send uniform data
-    glUniform3fv(m_meshGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
-    glUniform1i(m_meshGLSL.m_specularLocation, 1);
-    glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
-    // Draw
-    m_ood.render();
+        // Send uniform data
+        glUniform3fv(m_meshGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
+        glUniform1i(m_meshGLSL.m_specularLocation, 1);
+        glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
+        // Draw
+        m_ood.render();
+    }
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
