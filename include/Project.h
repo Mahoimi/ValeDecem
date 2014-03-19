@@ -33,30 +33,32 @@ class Project {
 private:
 	sf::Window m_window;
 
+    // 3D Model
     Cube m_cube;
-	Plane m_floorPlane;
 	Plane m_blitPlane;
     MeshRenderer m_sponza;
     MeshRenderer m_tardis;
     MeshRenderer m_ood;
+    FreeFlyCamera m_camera;
 
+    // Lights
     AmbiantLight m_ambiantLight;
-	PointLight m_pointLight;
-	DirectionalLight m_directionalLight;
-	SpotLight m_spotLight;
+    DirectionalLight m_directionalLight;
+    PointLight m_tardisPointLight;
+    SpotLight m_tardisSpotLight;
 
+    // Textures
     CubemapTexture m_skyboxTexture;
-
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
 
-	FreeFlyCamera m_camera;
-
+    // FBO
     GBuffer m_gbuffer;
-    //ShadowMap m_shadowMapSpotLight;
+    ShadowMap m_shadowMapSpotLight;
     ShadowMap m_shadowMapDirectionnalLight;
     FXFbo m_fxfbo;
 
+    // Shaders
     struct SkyboxGLSL {
         GLuint m_modelLocation;
         GLuint m_viewLocation;
@@ -216,26 +218,36 @@ private:
     };
     DofGLSL m_dofGLSL;
 
+    // Model, View and Projection matrices
 	glm::mat4 m_modelMatrix;
+    glm::mat4 m_tardisMatrix;
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
 
+    // DOF parameters
     glm::mat4 m_screenToView;
     glm::vec3 m_focus;
     float m_sampleCount;
 
+    // GUI
     GUI m_gui;
-
 	sf::Vector2i m_mousePosition;
 	sf::Vector2i m_prevMousePosition;
-
-    sf::Music m_music;
-
     float m_fps;
     bool m_debugMode;
 
+    // Sound
+    sf::Music m_music;
+
+    // Animation parameters
+    bool m_displayTardis;
+    bool m_displayOods;
+    bool m_displaySponza;
+
+    unsigned char m_animationSequence;
+
 	void getInput();
-    void unlightPass();
+    void animation(const float elapsedTime);
 	void gBufferPass();
     void shadowMappingPass();
     void lightingByAmbiantLight();
@@ -243,8 +255,10 @@ private:
 	void lightingByDirectionalLight();
 	void lightingBySpotLight();
 	void lightingPass();
+    void unlightPass();
     void fxPass();
 	void blitPass();
+
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

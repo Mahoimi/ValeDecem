@@ -6,6 +6,7 @@ Tf 1.00 1.00 1.00
 Ni 1.76
 Ks 0.61 0.61 0.61
 Ns 4.05
+map_Kd phone.png
 newmtl brush2ShaderSG
 illum 4
 Kd 0.00 0.00 0.00

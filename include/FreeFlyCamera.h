@@ -25,33 +25,17 @@ class FreeFlyCamera {
         glm::vec3 m_LeftVector;
         glm::vec3 m_UpVector;
 
-        // Compute all the parameters and angles to get the spherical coordinates of the camera
-        void computeDirectionVectors(){
-            m_LeftVector = glm::vec3(
-                                sin(m_fPhi+(M_PI/2)),
-                                0,
-                                cos(m_fPhi+(M_PI/2))
-                            );
-
-            m_FrontVector = glm::vec3(
-                cos(m_fTheta)*sin(m_fPhi),
-                sin(m_fTheta),
-                cos(m_fTheta)*cos(m_fPhi)
-            );
-            m_UpVector = glm::cross(m_FrontVector, m_LeftVector);
-        }
-
     public:
         FreeFlyCamera(){
             m_Position = glm::vec3(0,0,5);
-            m_fPhi = M_PI;
+            m_fPhi = glm::degrees(M_PI);
             m_fTheta = 0;
             computeDirectionVectors();
         }
 
         explicit FreeFlyCamera(glm::vec3 position){
             m_Position = position;
-            m_fPhi = M_PI;
+            m_fPhi = glm::degrees(M_PI);
             m_fTheta = 0;
             computeDirectionVectors();
         }
@@ -69,16 +53,14 @@ class FreeFlyCamera {
         }
 
         inline void rotateLeft(float degrees){
-            m_fPhi += glm::radians(degrees);
-            computeDirectionVectors();
+            m_fPhi += degrees;
         }
 
         inline void rotateUp(float degrees){
-            m_fTheta += glm::radians(degrees);
-            if((m_fTheta>M_PI/2)||(m_fTheta<-M_PI/2)){
-                m_fTheta -= glm::radians(degrees);
+            m_fTheta += degrees;
+            if((m_fTheta>glm::degrees(M_PI/2))||(m_fTheta<glm::degrees(-M_PI/2))){
+                m_fTheta -= degrees;
             }
-            computeDirectionVectors();
         }
 
         // Return the view matrix 4x4 of the camera
@@ -87,8 +69,34 @@ class FreeFlyCamera {
         }
 
         // Return the position in the 3D scene of the camera
-		inline const glm::vec3& getPosition() const{
+        inline glm::vec3& getPosition(){
 			return m_Position;
+        }
+
+        // Return angle phi
+        inline float& getPhi(){
+            return m_fPhi;
+        }
+
+        // Return angle theta
+        inline float& getTheta(){
+            return m_fTheta;
+        }
+
+        // Compute all the parameters and angles to get the spherical coordinates of the camera
+        void computeDirectionVectors(){
+            m_LeftVector = glm::vec3(
+                                sin(glm::radians(m_fPhi)+(M_PI/2)),
+                                0,
+                                cos(glm::radians(m_fPhi)+(M_PI/2))
+                            );
+
+            m_FrontVector = glm::vec3(
+                cos(glm::radians(m_fTheta))*sin(glm::radians(m_fPhi)),
+                sin(glm::radians(m_fTheta)),
+                cos(glm::radians(m_fTheta))*cos(glm::radians(m_fPhi))
+            );
+            m_UpVector = glm::cross(m_FrontVector, m_LeftVector);
         }
 
         // Print all the infos of the Camera instance

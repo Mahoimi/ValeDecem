@@ -150,17 +150,19 @@ void Project::init(){
 
 	// Init VAO/VBO for 3D primitives / meshes
     m_cube.init();
-    m_floorPlane.init(50.f);
 	m_blitPlane.init(1.f);
     m_sponza.load("../../assets/sponza/sponza.obj");
     m_tardis.load("../../assets/tardis/tardis.obj");
     m_ood.load("../../assets/ood/ood.obj");
 
+    // Init model matrices
+    m_tardisMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
-    m_pointLight.init(glm::vec3(0.66f, 3.72f, -0.13f), glm::vec3(1, 1, 1), 2.f);
-    m_directionalLight.init(glm::vec3(0.25f, -1, 0.f), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6.f, 1800.0f);
-    m_spotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1.f);
+    m_directionalLight.init(glm::vec3(0.25f, -1, 0), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6, 1800);
+    m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
+    m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
 
     // Fx parameters
     m_focus = glm::vec3(5.f, 1.f, 50.f);
@@ -174,14 +176,13 @@ void Project::init(){
     m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
+
+    m_gui.addParameter(&m_camera.getPosition(), TW_TYPE_DIR3F, "camera_position", "group='Camera' label='Position'");
+    m_gui.addParameter(&m_camera.getPhi(), TW_TYPE_FLOAT, "camera_phi", "group='Camera' label='Phi' step=1");
+    m_gui.addParameter(&m_camera.getTheta(), TW_TYPE_FLOAT, "camera_theta", "group='Camera' label='Theta' step=1");
+
     m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'");
     m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01");
-
-    m_gui.addParameter(&m_pointLight.getPosition().x, TW_TYPE_FLOAT, "point_positionX", "group='PointLight' label='Position.x' step=0.01");
-    m_gui.addParameter(&m_pointLight.getPosition().y, TW_TYPE_FLOAT, "point_positionY", "group='PointLight' label='Position.y' step=0.01");
-    m_gui.addParameter(&m_pointLight.getPosition().z, TW_TYPE_FLOAT, "point_positionZ", "group='PointLight' label='Position.z' step=0.01");
-    m_gui.addParameter(&m_pointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='PointLight' label='Color'");
-    m_gui.addParameter(&m_pointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='PointLight' label='Intensity' min=0 max=5 step=0.01");
 
     m_gui.addParameter(&m_directionalLight.getDirection(), TW_TYPE_DIR3F, "directional_direction", "group='DirectionalLight' label='Direction'");
     m_gui.addParameter(&m_directionalLight.getColor(), TW_TYPE_COLOR3F, "directional_color", "group='DirectionalLight' label='Color'");
@@ -189,6 +190,10 @@ void Project::init(){
     m_gui.addParameter(&m_directionalLight.getShadowBias(), TW_TYPE_FLOAT, "directional_shadowBias", "group='DirectionalLight' label='ShadowBias' min=0 max=5 step=0.001");
     m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1");
     m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50");
+
+    m_gui.addParameter(&m_tardisPointLight.getPosition(), TW_TYPE_DIR3F, "point_position", "group='TardisPointLight' label='Position'");
+    m_gui.addParameter(&m_tardisPointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='TardisPointLight' label='Color'");
+    m_gui.addParameter(&m_tardisPointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='TardisPointLight' label='Intensity' min=0 max=5 step=0.01");
 
     m_gui.addParameter(&m_focus.x, TW_TYPE_FLOAT, "focus_plane", "group='DepthOfField' label='Focus plane' min=0 max=100 step=0.1");
     m_gui.addParameter(&m_focus.y, TW_TYPE_FLOAT, "focus_near", "group='DepthOfField' label='Focus near' min=0 max=100 step=0.1");
@@ -249,30 +254,6 @@ void Project::gBufferPass(){
 	// Clear the current buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
-
-	// Reset model matrix
-	m_modelMatrix = glm::mat4(1.f);
-
-	// Linear transformations
-	m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(50));
-	m_modelMatrix = glm::rotate(m_modelMatrix, -90.f, glm::vec3(1, 0, 0));
-	m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
-		
-	// Send uniform data
-	glUniform1i(m_gbufferGLSL.m_diffuseLocation, 0);
-	glUniform1i(m_gbufferGLSL.m_specularLocation, 1);
-	glUniformMatrix4fv(m_gbufferGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-	glUniformMatrix4fv(m_gbufferGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-	glUniformMatrix4fv(m_gbufferGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
-
-	// Bind textures
-	m_diffuseTexture.bind(GL_TEXTURE0);
-	m_specularTexture.bind(GL_TEXTURE1);
-
-    // Draw
-    m_floorPlane.render();
-
     // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
 
     // Use mesh shader
@@ -280,7 +261,6 @@ void Project::gBufferPass(){
 
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
-    //m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-3,-0.5f,0));
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
 
     // Send uniform data
@@ -294,15 +274,10 @@ void Project::gBufferPass(){
     m_sponza.render();
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-
     // Send uniform data
     glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
     glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
-    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_tardisMatrix));
     glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
     glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
@@ -323,53 +298,32 @@ void Project::shadowMappingPass(){
     // Use gbuffer shaders
     m_shadowGLSL.m_program.use();
 
+    // Bind fbo
+    m_shadowMapDirectionnalLight.bindFramebuffer();
+
     // Clear the current buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set Viewport
     glViewport(0, 0, 2048, 2048);
 
-    // Bind fbo
-    m_shadowMapDirectionnalLight.bindFramebuffer();
-
-    // RENDER PLANE ////////////////////////////////////////////////////////////////////////////////////////////
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-
-    // Linear transformations
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(50));
-    m_modelMatrix = glm::rotate(m_modelMatrix, -90.f, glm::vec3(1, 0, 0));
-    m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0, 0, -0.5f/50.f));
-
-    // Send uniform values
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
-
-    // Draw
-    m_floorPlane.render();
-
     // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
 
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
-    //m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-3,-0.5f,0));
     m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
 
     // Send uniform data
+    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
+    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
     glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
     // Draw
     m_sponza.render();
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Reset model matrix
-    m_modelMatrix = glm::mat4(1.f);
-    m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-
     // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_tardisMatrix));
 
     // Draw
     m_tardis.render();
@@ -428,9 +382,9 @@ void Project::lightingByPointLight(){
 	glUniform3fv(m_pointLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
 	glUniformMatrix4fv(m_pointLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-	glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_pointLight.getPosition()));
-	glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_pointLight.getColor()));
-	glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_pointLight.getIntensity());
+    glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisPointLight.getPosition()));
+    glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisPointLight.getColor()));
+    glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_tardisPointLight.getIntensity());
 
 	// Bind textures : material, normal and depth
 	glActiveTexture(GL_TEXTURE0);
@@ -748,8 +702,19 @@ void Project::blitPass(){
     m_blitPlane.render();
 }
 
+void Project::animation(const float elapsedTime){
+    float tardisRotateSpeed;
+    if (elapsedTime < 230){
+        tardisRotateSpeed = elapsedTime*2;
+    }
+    else tardisRotateSpeed = 360;
+    m_tardisMatrix = glm::rotate(m_tardisMatrix,tardisRotateSpeed,glm::vec3(0,1,0));
+}
+
 void Project::run(){
     sf::Clock clock;
+    float prevTime = 0.f;
+    float currentTime;
 
 	m_prevMousePosition = sf::Mouse::getPosition(m_window);
 
@@ -786,6 +751,10 @@ void Project::run(){
 		// Keyboard / mouse inputs
 		getInput();
 
+        // Update camera position/rotation and model matrices
+        animation(clock.getElapsedTime().asSeconds());
+
+        m_camera.computeDirectionVectors();
         m_viewMatrix = m_camera.getViewMatrix();
 
         // Clear the buffers
@@ -818,6 +787,9 @@ void Project::run(){
         // end the current frame (internally swaps the front and back buffers)
         m_window.display();
 
-        m_fps = 1.f/ clock.restart().asSeconds();
+        currentTime = clock.getElapsedTime().asSeconds();
+        m_fps = 1.f/ (currentTime - prevTime);
+        prevTime = currentTime;
+
     }
 }
