@@ -6,7 +6,7 @@
 class FXFbo{
 private :
     GLuint m_framebuffer;
-    GLuint m_textures[3];
+    GLuint m_textures[4];
 
     // We don't want an unexpected copy of an instance of this class
     FXFbo(const FXFbo&);

@@ -83,17 +83,16 @@ private:
     GBufferGLSL m_gbufferGLSL;
     GBufferGLSL m_texturedMeshGLSL;
 
-    struct MeshGLSL {
+    struct OodGLSL {
         GLuint m_modelLocation;
         GLuint m_viewLocation;
         GLuint m_projectionLocation;
         GLuint m_colorLocation;
-        GLuint m_specularLocation;
         GLProgram m_program;
 
-        MeshGLSL(){}
+        OodGLSL(){}
     };
-    MeshGLSL m_meshGLSL;
+    OodGLSL m_oodGLSL;
 
 	struct BlitGLSL {
 		GLuint m_modelLocation;

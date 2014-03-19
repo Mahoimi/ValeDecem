@@ -20,7 +20,7 @@ void Project::init(){
 	// Load Shaders
     m_skyboxGLSL.m_program.load("../../shaders/skybox.vs.glsl", "../../shaders/skybox.fs.glsl");
     m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
-    m_meshGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/mesh.fs.glsl");
+    m_oodGLSL.m_program.load("../../shaders/ood.vs.glsl", "../../shaders/ood.fs.glsl");
     m_texturedMeshGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/texturedMesh.fs.glsl");
     m_blitGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/blit.fs.glsl");
     m_ambiantLightGLSL.m_program.load("../../shaders/blit.vs.glsl", "../../shaders/ambiantLight.fs.glsl");
@@ -44,11 +44,10 @@ void Project::init(){
 	m_gbufferGLSL.m_diffuseLocation = m_gbufferGLSL.m_program.getUniformLocation("Diffuse");
 	m_gbufferGLSL.m_specularLocation = m_gbufferGLSL.m_program.getUniformLocation("Specular");
 
-    m_meshGLSL.m_modelLocation = m_meshGLSL.m_program.getUniformLocation("Model");
-    m_meshGLSL.m_viewLocation = m_meshGLSL.m_program.getUniformLocation("View");
-    m_meshGLSL.m_projectionLocation = m_meshGLSL.m_program.getUniformLocation("Projection");
-    m_meshGLSL.m_colorLocation = m_meshGLSL.m_program.getUniformLocation("MeshColor");
-    m_meshGLSL.m_specularLocation = m_meshGLSL.m_program.getUniformLocation("Specular");
+    m_oodGLSL.m_modelLocation = m_oodGLSL.m_program.getUniformLocation("Model");
+    m_oodGLSL.m_viewLocation = m_oodGLSL.m_program.getUniformLocation("View");
+    m_oodGLSL.m_projectionLocation = m_oodGLSL.m_program.getUniformLocation("Projection");
+    m_oodGLSL.m_colorLocation = m_oodGLSL.m_program.getUniformLocation("MeshColor");
 
     m_texturedMeshGLSL.m_modelLocation = m_texturedMeshGLSL.m_program.getUniformLocation("Model");
     m_texturedMeshGLSL.m_viewLocation = m_texturedMeshGLSL.m_program.getUniformLocation("View");
@@ -176,7 +175,7 @@ void Project::init(){
 
     // Init animation parameters
     m_displayTardis = true;
-    m_displayOods = false;
+    m_displayOods = true;
     m_displaySponza = true;
     m_animationSequence = '1';
 
@@ -528,7 +527,7 @@ void Project::unlightPass(){
     // Reset model matrix
     m_modelMatrix = glm::mat4(1.f);
     m_modelMatrix = glm::translate(m_modelMatrix, m_camera.getPosition());
-    m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(0.1f));
+    m_modelMatrix = glm::scale(m_modelMatrix,glm::vec3(20.f));
 
     // Send uniform data
     glUniform1i(m_skyboxGLSL.m_skyboxTextureLocation, 0);
@@ -545,7 +544,10 @@ void Project::unlightPass(){
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
 
     if(m_displayOods){
-        m_meshGLSL.m_program.use();
+        m_fxfbo.bindFramebufferWith(3);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        m_oodGLSL.m_program.use();
 
         // Reset model matrix
         m_modelMatrix = glm::mat4(1.f);
@@ -553,11 +555,10 @@ void Project::unlightPass(){
         m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
         // Send uniform data
-        glUniform3fv(m_meshGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
-        glUniform1i(m_meshGLSL.m_specularLocation, 1);
-        glUniformMatrix4fv(m_meshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-        glUniformMatrix4fv(m_meshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-        glUniformMatrix4fv(m_meshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+        glUniform3fv(m_oodGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
+        glUniformMatrix4fv(m_oodGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_oodGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_oodGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
         // Draw
         m_ood.render();
@@ -640,6 +641,41 @@ void Project::fxPass(){
     glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(1));
 
     m_blitPlane.render();
+
+    // BLUR GLOWMAP
+    m_fxfbo.bindFramebufferWith(2);
+
+    m_blurGLSL.m_program.use();
+    glUniform1i(m_blurGLSL.m_textureLocation, 0);
+    glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
+    glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+    glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+    glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+    // Bind depth texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(3));
+
+    m_blitPlane.render();
+
+    // BLEND GLOWMAP
+    glEnable(GL_BLEND);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Use blit shaders
+    m_blitGLSL.m_program.use();
+
+    // Send uniform value
+    glUniform1i(m_blitGLSL.m_textureLocation, 0);
+
+    // Bind color texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
+
+    m_blitPlane.render();
+
+    glDisable(GL_BLEND);
+
 }
 
 void Project::blitPass(){
@@ -651,7 +687,7 @@ void Project::blitPass(){
 
     // DIFFUSE TEXTURE ///////////////////////////////////////////////////
 	// Set Viewport 
-    glViewport(0, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(0, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
 	// Bind color texture
 	glActiveTexture(GL_TEXTURE0);
@@ -662,7 +698,7 @@ void Project::blitPass(){
 
     // NORMAL TEXTURE ///////////////////////////////////////////////////
 	// Viewport 
-    glViewport(m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
 	// Bind normal texture
 	glActiveTexture(GL_TEXTURE0);
@@ -673,7 +709,7 @@ void Project::blitPass(){
 
     // DEPTH TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(2*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(2*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
 	// Bind depth texture
 	glActiveTexture(GL_TEXTURE0);
@@ -684,7 +720,7 @@ void Project::blitPass(){
 
     // SHADOWMAP TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(3*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(3*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
     // Bind shadowMap texture
     glActiveTexture(GL_TEXTURE0);
@@ -695,7 +731,7 @@ void Project::blitPass(){
 
     // LIGHTEDSCENE TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(4*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(4*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
     // Bind normal texture
     glActiveTexture(GL_TEXTURE0);
@@ -706,7 +742,7 @@ void Project::blitPass(){
 
     // COC TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(5*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(5*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
     // Bind depth texture
     glActiveTexture(GL_TEXTURE0);
@@ -717,11 +753,22 @@ void Project::blitPass(){
 
     // BLUR TEXTURE ///////////////////////////////////////////////////
     // Viewport
-    glViewport(6*m_window.getSize().x/7, 0, m_window.getSize().x/7, m_window.getSize().y/7);
+    glViewport(6*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
 
     // Bind shadowMap texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
+
+    // Render plane
+    m_blitPlane.render();
+
+    // GLOWMAP TEXTURE ///////////////////////////////////////////////////
+    // Viewport
+    glViewport(7*m_window.getSize().x/8, 0, m_window.getSize().x/8, m_window.getSize().y/8);
+
+    // Bind shadowMap texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(3));
 
     // Render plane
     m_blitPlane.render();

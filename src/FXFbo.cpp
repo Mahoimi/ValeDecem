@@ -3,7 +3,7 @@
 
 void FXFbo::init(const unsigned int width, const unsigned int height){
     // Generate the three textures we need
-    glGenTextures(3, m_textures);
+    glGenTextures(4, m_textures);
 
     // Bind the texture
     glBindTexture(GL_TEXTURE_2D, m_textures[0]);
@@ -41,6 +41,17 @@ void FXFbo::init(const unsigned int width, const unsigned int height){
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+    glBindTexture(GL_TEXTURE_2D, m_textures[3]);
+
+    // Define the texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    // Define the filters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
      // Create Framebuffer Object
     glGenFramebuffers(1, &m_framebuffer);
 
@@ -64,12 +75,12 @@ void FXFbo::bindFramebufferWith(unsigned int index) {
 }
 
 const GLuint& FXFbo::getTexture(unsigned int index) {
-    assert(index < 3);
+    assert(index < 4);
     return m_textures[index];
 }
 
 FXFbo::~FXFbo(){
     // Free the memory
-    glDeleteTextures(3, m_textures);
+    glDeleteTextures(4, m_textures);
     glDeleteFramebuffers(1, &m_framebuffer);
 }
