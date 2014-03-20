@@ -963,7 +963,7 @@ void Project::emptySponzaTravellingSequence(const float elapsedTime){
         m_focus = glm::vec3(2,1,20);
 
         // Speed
-        m_speed = 1.f;
+        m_speed = 0.5f;
         m_speed2 = 0.3f;
 
         m_initSequence = true;
@@ -981,9 +981,9 @@ void Project::emptySponzaTravellingSequence(const float elapsedTime){
         m_camera.getPosition().y -= m_speed2 * elapsedTime;
     }
 
-    if (m_camera.getPosition().x < -5){
+    if (m_camera.getPosition().x < -2){
         // Accelerate
-        if (m_speed < 5.f){
+        if (m_speed < 2){
             m_speed += 0.01f;
         }
     }
@@ -1046,7 +1046,7 @@ void Project::emptySponzaPanSequence(const float elapsedTime){
 
     if (m_camera.getPhi() > 180){
         // Acceleration of Theta
-        if (m_camera.getTheta() < 40){
+        if (m_camera.getTheta() < 60){
 
             if (m_speed < 20.f){
                 m_speed += 0.2f;
@@ -1105,14 +1105,14 @@ void Project::oodApparitionSequence(const float elapsedTime){
         m_focus = glm::vec3(2,1,20);
 
         // Speed
-        m_speed = 0.2f;
+        m_speed = 0.15f;
 
         m_initSequence = true;
     }
 
     m_cameraPointLight.setPosition(m_camera.getPosition());
 
-    if(m_oodPointLight[0].getPosition().y < 0.5){
+    if(m_oodPointLight[0].getPosition().y < 0.75){
         m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
     }
     else{
@@ -1145,7 +1145,7 @@ void Project::oodFountainSequence(const float elapsedTime){
         m_focus = glm::vec3(2,1,20);
 
         // Speed
-        m_speed = 0.5f;
+        m_speed = 0.25f;
 
         m_initSequence = true;
     }
@@ -1293,7 +1293,7 @@ void Project::tardisSpaceSequence(const float elapsedTime){
         m_focus = glm::vec3(8,1,20);
 
         // Speed
-        m_speed = 8;
+        m_speed = 4;
         m_speed2 = 8;
 
         m_initSequence = true;
@@ -1398,7 +1398,7 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
         m_focus = glm::vec3(3,1,20);
 
         // Animation speed
-        m_speed = 1;
+        m_speed = 0.75f;
         m_speed2 = 8;
         m_initSequence = true;
     }
