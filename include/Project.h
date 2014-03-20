@@ -255,7 +255,8 @@ private:
     bool m_displaySponza;
     bool m_displayDof;
 
-	void getInput();
+    void getInput();
+    void clearBuffers();
     void animation(const float elapsedTime);
 	void gBufferPass();
     void shadowMappingPass();

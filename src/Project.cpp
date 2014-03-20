@@ -160,8 +160,6 @@ void Project::init(){
     m_tardisRotationAxe = glm::vec3(0,1,0);
     m_tardisRotation = 0;
     m_oodPosition = glm::vec3(-1,2,0);
-    // TODO : Remplacer par position et rotation de chaque model
-    // Créer une Sponza matrice à initier au début et à ne plus toucher
 
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.18f);
@@ -261,6 +259,25 @@ void Project::getInput(){
     }
 }
 
+// Clear all information remaining in the buffers we use
+void Project::clearBuffers(){
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_gbuffer.bindFramebuffer();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_shadowMapDirectionnalLight.bindFramebuffer();
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    m_shadowMapSpotLight.bindFramebuffer();
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    for (unsigned int i = 0; i < 4; ++i){
+        m_fxfbo.bindFramebufferWith(i);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+}
+
 void Project::gBufferPass(){
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
@@ -273,9 +290,6 @@ void Project::gBufferPass(){
 
 	// Bind fbo
 	m_gbuffer.bindFramebuffer();
-
-	// Clear the current buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Use mesh shader
     m_texturedMeshGLSL.m_program.use();
@@ -328,9 +342,6 @@ void Project::shadowMappingPass(){
 
     // Bind fbo
     m_shadowMapDirectionnalLight.bindFramebuffer();
-
-    // Clear the current buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set Viewport
     glViewport(0, 0, 2048, 2048);
@@ -510,7 +521,6 @@ void Project::lightingBySpotLight(){
 
 void Project::lightingPass(){
     m_fxfbo.bindFramebufferWith(0);
-    glClear(GL_COLOR_BUFFER_BIT);
 
     // Enable blending
     glEnable(GL_BLEND);
@@ -560,10 +570,9 @@ void Project::unlightPass(){
     m_cube.render();
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
-    m_fxfbo.bindFramebufferWith(3);
-    glClear(GL_COLOR_BUFFER_BIT);
-
     if(m_displayOods){
+        m_fxfbo.bindFramebufferWith(3);
+
         m_oodGLSL.m_program.use();
 
         // Reset model matrix
@@ -594,7 +603,6 @@ void Project::fxPass(){
         // COC ////////////////////////
         m_fxfbo.bindFramebufferWith(1);
 
-        glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
         m_screenToView = glm::inverse(m_projectionMatrix);
@@ -619,7 +627,6 @@ void Project::fxPass(){
         // Bind framebuffer
         m_fxfbo.bindFramebufferWith(2);
 
-        glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, m_window.getSize().x / 2, m_window.getSize().y / 2);
 
         // Use blur shaders
@@ -718,6 +725,9 @@ void Project::fxPass(){
 }
 
 void Project::blitPass(){
+    // Use default buffers
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	// Use blit shaders
 	m_blitGLSL.m_program.use();
 
@@ -936,7 +946,7 @@ void Project::run(){
         m_viewMatrix = m_camera.getViewMatrix();
 
         // Clear the buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        clearBuffers();
 		
 		// Render the geometry in the gbuffer
         gBufferPass();
