@@ -163,12 +163,14 @@ void Project::init(){
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.18f);
     m_directionalLight.init(glm::vec3(0.25f, -1, 0), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6, 1800);
+    m_cameraPointLight.init(m_camera.getPosition(), glm::vec3(1, 1, 1), 4);
+
     m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
     m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
 
-    m_oodPointLight[0].init(glm::vec3(0, -0.3f, 0), glm::vec3(1, 0, 0), 1);
-    m_oodPointLight[1].init(glm::vec3(11.2f, 1.f, 3.90f), glm::vec3(0, 1, 0), 1);
-    m_oodPointLight[2].init(glm::vec3(11.4f, 0.2f, -4.8f), glm::vec3(0, 0, 1), 1);
+    m_oodPointLight[0].init(glm::vec3(0, -0.3f, 0), glm::vec3(1, 1, .6f), 1);
+    m_oodPointLight[1].init(glm::vec3(11.2f, 1.f, 3.90f), glm::vec3(.6f, 1, .6f), 1);
+    m_oodPointLight[2].init(glm::vec3(11.4f, 0.2f, -4.8f), glm::vec3(.6f, .6f, 1), 1);
 
     // Fx parameters
     m_focus = glm::vec3(5.f, 1.f, 50.f);
@@ -176,7 +178,7 @@ void Project::init(){
 
     // Init music
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
-    //m_music.play();
+    m_music.play();
 
     // Animation parameters
     m_animationSequence = 1;
@@ -193,11 +195,15 @@ void Project::init(){
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
     m_gui.addParameter(&m_displayTardis, TW_TYPE_BOOL8, "display_tardis", "group='Display' label='Tardis'");
-    //m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "group='Display' label='Oods'");
+    m_gui.addParameter(&m_displayCameraPointLight, TW_TYPE_BOOL8, "display_camera_pl", "group='Display' label='Camera PointLight'");
 
     m_gui.addParameter(&m_camera.getPosition(), TW_TYPE_DIR3F, "camera_position", "group='Camera' label='Position'");
     m_gui.addParameter(&m_camera.getPhi(), TW_TYPE_FLOAT, "camera_phi", "group='Camera' label='Phi' step=1");
     m_gui.addParameter(&m_camera.getTheta(), TW_TYPE_FLOAT, "camera_theta", "group='Camera' label='Theta' step=1");
+    m_gui.addParameter(&m_cameraPointLight.getPosition(), TW_TYPE_DIR3F, "camera_pl_position", "group='Camera' label='Position'");
+    m_gui.addParameter(&m_cameraPointLight.getColor(), TW_TYPE_COLOR3F, "camera_pl_color", "group='Camera' label='Color'");
+    m_gui.addParameter(&m_cameraPointLight.getIntensity(), TW_TYPE_FLOAT, "camera_pl_intensity", "group='Camera' label='Intensity' min=0 max=10 step=0.01");
+
 
     m_gui.addParameter(&m_tardisPosition, TW_TYPE_DIR3F, "tardis_position", "group='Tardis' label='Position'");
     m_gui.addParameter(&m_tardisRotationAxe, TW_TYPE_DIR3F, "tardis_rot_axe", "group='Tardis' label='Rotation Axe'");
@@ -215,9 +221,9 @@ void Project::init(){
     m_gui.addParameter(&m_directionalLight.getShadowSamples(), TW_TYPE_FLOAT, "directional_shadowSamples", "group='DirectionalLight' label='ShadowSamples' min=0 max=16 step=1");
     m_gui.addParameter(&m_directionalLight.getShadowSampleSpread(), TW_TYPE_FLOAT, "directional_shadowSampleSpread", "group='DirectionalLight' label='ShadowSampleSpread' min=0 max=10000 step=50");
 
-    m_gui.addParameter(&m_tardisPointLight.getPosition(), TW_TYPE_DIR3F, "point_position", "group='TardisPointLight' label='Position'");
-    m_gui.addParameter(&m_tardisPointLight.getColor(), TW_TYPE_COLOR3F, "point_color", "group='TardisPointLight' label='Color'");
-    m_gui.addParameter(&m_tardisPointLight.getIntensity(), TW_TYPE_FLOAT, "point_intensity", "group='TardisPointLight' label='Intensity' min=0 max=5 step=0.01");
+    m_gui.addParameter(&m_tardisPointLight.getPosition(), TW_TYPE_DIR3F, "tardis_pl_position", "group='TardisPointLight' label='Position'");
+    m_gui.addParameter(&m_tardisPointLight.getColor(), TW_TYPE_COLOR3F, "tardis_pl_color", "group='TardisPointLight' label='Color'");
+    m_gui.addParameter(&m_tardisPointLight.getIntensity(), TW_TYPE_FLOAT, "tardis_pl_intensity", "group='TardisPointLight' label='Intensity' min=0 max=5 step=0.01");
 
     m_gui.addParameter(&m_focus.x, TW_TYPE_FLOAT, "focus_plane", "group='DepthOfField' label='Focus plane' min=0 max=100 step=0.1");
     m_gui.addParameter(&m_focus.y, TW_TYPE_FLOAT, "focus_near", "group='DepthOfField' label='Focus near' min=0 max=100 step=0.1");
@@ -444,13 +450,22 @@ void Project::lightingByPointLight(){
 	glUniformMatrix4fv(m_pointLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
     // RENDER TARDIS POINTLIGHT ///////////////////////////////////////////////////////////////////////////////
-    //if(m_displayTardis){
+    if(m_displayTardis){
         glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisPointLight.getPosition()));
         glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisPointLight.getColor()));
         glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_tardisPointLight.getIntensity());
 
         m_blitPlane.render();
-    //}
+    }
+
+    // RENDER CAMERA POINTLIGHT
+    if (m_displayCameraPointLight){
+        glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_cameraPointLight.getPosition()));
+        glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_cameraPointLight.getColor()));
+        glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_cameraPointLight.getIntensity());
+
+        m_blitPlane.render();
+    }
 
     // RENDER OODS POINTLIGHT //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int i = 0; i<m_oodsNumber; ++i){
@@ -855,16 +870,23 @@ void Project::playNewSequence(){
 // Camera Phi goes from 230 to -77 with a slight acceleration and deceleration
 void Project::sequence1(const float elapsedTime){
     if (!m_initSequence){
+        m_music.stop();
+        m_music.play();
+
         m_displayTardis = false;
         m_displaySponza = false;
         m_displayDof = false;
+        m_displayCameraPointLight = false;
         for (unsigned i = 0; i<m_oodsNumber; i++){
             m_displayOods[i] = false;
         }
-        m_speed = 1.f;
+
         m_camera.setPosition(glm::vec3(0, 16, 0));
         m_camera.setPhi(230);
         m_camera.setTheta(54);
+
+        m_speed = 1.f;
+
         m_initSequence = true;
     }
 
@@ -900,14 +922,23 @@ void Project::sequence2(const float elapsedTime){
         }
         m_displaySponza = true;
         m_displayDof = true;
+        m_displayCameraPointLight = true;
+
         m_camera.setPosition(glm::vec3(-13, 3.f, -0.35f));
+        m_cameraPointLight.setPosition(m_camera.getPosition());
+        m_cameraPointLight.setIntensity(5.f);
         m_camera.setPhi(90);
         m_camera.setTheta(0);
+
         m_focus = glm::vec3(2,1,20);
+
         m_speed = 1.f;
         m_speed2 = 0.3f;
+
         m_initSequence = true;
     }
+
+    m_cameraPointLight.setPosition(m_camera.getPosition());
 
     if (m_camera.getPosition().y < 2){
         if (m_speed2 > 0.1f){
@@ -953,14 +984,23 @@ void Project::sequence3(const float elapsedTime){
         }
         m_displaySponza = true;
         m_displayDof = true;
+        m_displayCameraPointLight = true;
+
         m_camera.setPosition(glm::vec3(0, 1.25f, -.5f));
+        m_cameraPointLight.setPosition(m_camera.getPosition());
+        m_cameraPointLight.setIntensity(2.f);
         m_camera.setPhi(240);
         m_camera.setTheta(0);
+
         m_focus = glm::vec3(2,1,20);
+
         m_speed = 1.f;
         m_speed2 = 1.f;
+
         m_initSequence = true;
     }
+
+    m_cameraPointLight.setPosition(m_camera.getPosition());
 
     // Acceleration of Phi
     if (m_camera.getPhi() > 130){
@@ -1022,9 +1062,9 @@ void Project::sequence4(const float elapsedTime){
         }
         m_displayOods[0] = true;
         m_oodPointLight[0].setPosition(glm::vec3(0, -0.3f, 0));
-
+        m_displayCameraPointLight = false;
         m_displaySponza = true;
-        m_displayDof = false;
+        m_displayDof = true;
         m_camera.setPosition(glm::vec3(-3, 0.1f, 1.4f));
         m_camera.setPhi(110);
         m_camera.setTheta(5);
@@ -1032,6 +1072,8 @@ void Project::sequence4(const float elapsedTime){
         m_speed = 0.2f;
         m_initSequence = true;
     }
+
+    m_cameraPointLight.setPosition(m_camera.getPosition());
 
     if(m_oodPointLight[0].getPosition().y < 0.5){
         m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
@@ -1051,15 +1093,15 @@ void Project::sequence5(const float elapsedTime){
         for (unsigned i = 0; i<m_oodsNumber; i++){
             m_displayOods[i] = false;
         }
-
+        m_displayCameraPointLight = false;
+        m_displaySponza = true;
+        m_displayDof = true;
         m_displayOods[1] = true;
-        m_oodPointLight[1].setPosition(glm::vec3(11.2f, 1.f, 3.90f));
-
         m_displayOods[2] = true;
+
+        m_oodPointLight[1].setPosition(glm::vec3(11.2f, 1.f, 3.90f));
         m_oodPointLight[2].setPosition(glm::vec3(11.4f, 0.2f, -4.8f));
 
-        m_displaySponza = true;
-        m_displayDof = false;
         m_camera.setPosition(glm::vec3(12.5, 2.2f, -6.3));
         m_camera.setPhi(-22);
         m_camera.setTheta(-11);

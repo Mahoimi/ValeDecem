@@ -44,6 +44,7 @@ private:
     // Lights
     AmbiantLight m_ambiantLight;
     DirectionalLight m_directionalLight;
+    PointLight m_cameraPointLight;
     PointLight m_tardisPointLight;
     SpotLight m_tardisSpotLight;
     PointLight m_oodPointLight[3];
@@ -253,6 +254,7 @@ private:
     bool m_displayTardis;
     bool m_displayOods[3];
     bool m_displaySponza;
+    bool m_displayCameraPointLight;
     bool m_displayDof;
     unsigned int m_oodsNumber = 3;
 

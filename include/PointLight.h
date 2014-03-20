@@ -40,6 +40,10 @@ public:
 		return m_Intensity;
 	}
 
+    void setIntensity(const float intensity){
+        m_Intensity = intensity;
+    }
+
     void setPosition(glm::vec3 newPosition){
         m_Position = newPosition;
     }

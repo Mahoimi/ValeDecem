@@ -6,7 +6,7 @@
 int main()
 {
     //int width = 1280, height = 720;
-    int width = 800, height = 600;
+    int width = 852, height = 480;
 
 	Project ourProject(width, height, "Project d'OpenGL");
 	ourProject.init();
