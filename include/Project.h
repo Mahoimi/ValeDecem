@@ -218,8 +218,15 @@ private:
     DofGLSL m_dofGLSL;
 
     // Model, View and Projection matrices
-	glm::mat4 m_modelMatrix;
-    glm::mat4 m_tardisMatrix;
+    glm::vec3 m_tardisPosition;
+    glm::vec3 m_tardisRotationAxe;
+    float m_tardisRotation;
+
+    glm::vec3 m_oodPosition;
+
+    glm::mat4 m_sponzaMatrix;
+
+    glm::mat4 m_modelMatrix;
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
 

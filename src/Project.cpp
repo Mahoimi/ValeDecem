@@ -155,12 +155,16 @@ void Project::init(){
     m_ood.load("../../assets/ood/ood.obj");
 
     // Init model matrices
-    m_tardisMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+    m_sponzaMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
+    m_tardisPosition = glm::vec3(0,0,0);
+    m_tardisRotationAxe = glm::vec3(0,1,0);
+    m_tardisRotation = 0;
+    m_oodPosition = glm::vec3(-1,2,0);
     // TODO : Remplacer par position et rotation de chaque model
     // Créer une Sponza matrice à initier au début et à ne plus toucher
 
 	// Init lights
-    m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.1f);
+    m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.18f);
     m_directionalLight.init(glm::vec3(0.25f, -1, 0), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6, 1800);
     m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
     m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
@@ -185,9 +189,19 @@ void Project::init(){
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
+    m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "label='Sponza'");
+    m_gui.addParameter(&m_displayTardis, TW_TYPE_BOOL8, "display_tardis", "label='Tardis'");
+    m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "label='Oods'");
+
     m_gui.addParameter(&m_camera.getPosition(), TW_TYPE_DIR3F, "camera_position", "group='Camera' label='Position'");
     m_gui.addParameter(&m_camera.getPhi(), TW_TYPE_FLOAT, "camera_phi", "group='Camera' label='Phi' step=1");
     m_gui.addParameter(&m_camera.getTheta(), TW_TYPE_FLOAT, "camera_theta", "group='Camera' label='Theta' step=1");
+
+    m_gui.addParameter(&m_tardisPosition, TW_TYPE_DIR3F, "tardis_position", "group='Tardis' label='Position'");
+    m_gui.addParameter(&m_tardisRotationAxe, TW_TYPE_DIR3F, "tardis_rot_axe", "group='Tardis' label='Rotation Axe'");
+    m_gui.addParameter(&m_tardisRotation, TW_TYPE_FLOAT, "tardis_rotation", "group='Tardis' label='Rotation angle'");
+
+    m_gui.addParameter(&m_oodPosition, TW_TYPE_DIR3F, "ood_position", "group='Ood' label='Position'");
 
     m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'");
     m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01");
@@ -267,15 +281,10 @@ void Project::gBufferPass(){
 
     // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
     if(m_displaySponza){
-
-        // Reset model matrix
-        m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
-
         // Send uniform data
         glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
         glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
-        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_sponzaMatrix));
         glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
         glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
@@ -285,10 +294,16 @@ void Project::gBufferPass(){
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
     if(m_displayTardis){
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+        m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+
         // Send uniform data
         glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
         glUniform1i(m_texturedMeshGLSL.m_specularLocation, 10);
-        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_tardisMatrix));
+        glUniformMatrix4fv(m_texturedMeshGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
         glUniformMatrix4fv(m_texturedMeshGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
         glUniformMatrix4fv(m_texturedMeshGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
@@ -326,11 +341,7 @@ void Project::shadowMappingPass(){
     // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
 
     if(m_displaySponza){
-        // Reset model matrix
-        m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.01f));
-
-        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_sponzaMatrix));
 
         // Draw
         m_sponza.render();
@@ -338,8 +349,14 @@ void Project::shadowMappingPass(){
 
     // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
     if(m_displayTardis){
+        // Reset model matrix
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+        m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+
         // Send uniform data
-        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_tardisMatrix));
+        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
         // Draw
         m_tardis.render();
@@ -350,7 +367,7 @@ void Project::shadowMappingPass(){
     if(m_displayOods){
         // Reset model matrix
         m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+        m_modelMatrix = glm::translate(m_modelMatrix, m_oodPosition);
         m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
         // Send uniform data
@@ -542,16 +559,15 @@ void Project::unlightPass(){
     m_cube.render();
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
+    m_fxfbo.bindFramebufferWith(3);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     if(m_displayOods){
-        m_fxfbo.bindFramebufferWith(3);
-        glClear(GL_COLOR_BUFFER_BIT);
-
         m_oodGLSL.m_program.use();
 
         // Reset model matrix
         m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(-4,1,0));
+        m_modelMatrix = glm::translate(m_modelMatrix, m_oodPosition);
         m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
         // Send uniform data
@@ -775,12 +791,7 @@ void Project::blitPass(){
 }
 
 void Project::animation(const float elapsedTime){
-    float tardisRotateSpeed;
-    if (elapsedTime < 230){
-        tardisRotateSpeed = elapsedTime*2;
-    }
-    else tardisRotateSpeed = 360;
-    m_tardisMatrix = glm::rotate(m_tardisMatrix,tardisRotateSpeed,glm::vec3(0,1,0));
+
 }
 
 void Project::run(){
