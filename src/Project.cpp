@@ -196,7 +196,7 @@ void Project::init(){
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
-    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=9 step=1");
+    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=13 step=1");
     m_gui.addPlayButton("play_sequence",this,"label='Play sequence'");
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
@@ -464,6 +464,15 @@ void Project::lightingByPointLight(){
 
     // RENDER TARDIS POINTLIGHT ///////////////////////////////////////////////////////////////////////////////
     if(m_displayTardis){
+
+        // Calculate new position of tardisPointLight
+        m_modelMatrix = glm::mat4(1.f);
+        m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+        m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(0,3,0));
+        glm::vec4 m_newPosition = m_modelMatrix * glm::vec4(0,0,0,1);
+        m_tardisPointLight.setPosition(glm::vec3(m_newPosition.x, m_newPosition.y, m_newPosition.z));
+
         glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisPointLight.getPosition()));
         glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisPointLight.getColor()));
         glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_tardisPointLight.getIntensity());
@@ -1262,20 +1271,22 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
     }
 }
 
-// Tardis in Space TODO add tardis point light
 void Project::tardisSpaceSequence(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
         m_displayTardis = true;
+        m_displayCameraPointLight = true;
 
         // Tardis
         m_tardisPosition = glm::vec3(0.f, 18.5, 0.5f);
-        m_tardisRotationAxe = glm::vec3(-3.f, 9.f, 0.f);
-        m_tardisRotation = 0.0;
+        m_tardisRotationAxe = glm::vec3(-3, 9, 0);
+        m_tardisRotation = 0;
 
         // Camera
-        m_camera.setPosition(glm::vec3(-22.f, 20.f, 5.f));
+        m_camera.setPosition(glm::vec3(-22, 20, 5));
+        m_cameraPointLight.setPosition(m_camera.getPosition());
+        m_cameraPointLight.setIntensity(5);
         m_camera.setPhi(-220);
         m_camera.setTheta(0);
 
@@ -1283,15 +1294,21 @@ void Project::tardisSpaceSequence(const float elapsedTime){
         m_focus = glm::vec3(8,1,20);
 
         // Speed
-        m_speed = 8.f;
-        m_speed2 = 100.f;
+        m_speed = 8;
+        m_speed2 = 100;
+        m_speed3 = 8;
 
         m_initSequence = true;
     }
 
+
+    m_tardisPointLight.getIntensity() += m_speed3 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed3 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed3 = 8;
+
     if(m_camera.getPosition().x < 0.5){
         m_camera.getPosition().x += m_speed * elapsedTime;
-        // Tardis rotation
+        m_cameraPointLight.setPosition(m_camera.getPosition());
         m_tardisRotation += m_speed2 * elapsedTime;
     }
 
@@ -1306,6 +1323,7 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
+        m_displayCameraPointLight = true;
         m_displayTardis = true;
         m_displaySponza = true;
         m_displayDof = true;
@@ -1316,12 +1334,13 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
 
         // Tardis
         m_tardisPosition = glm::vec3(20,17,0);
-        m_tardisPointLight.setPosition(glm::vec3(13,19,0));
         m_tardisRotationAxe = glm::vec3(-3, 9, 0);
         m_tardisRotation = 0.f;
 
         // Camera
         m_camera.setPosition(glm::vec3(17.5f,20.5f,4));
+        m_cameraPointLight.setPosition(m_camera.getPosition());
+        m_cameraPointLight.setIntensity(2.f);
         m_camera.setPhi(-108);
         m_camera.setTheta(-36);
 
@@ -1330,14 +1349,18 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
 
         // Animation speed
         m_speed = 2.f;
+        m_speed3 = 8;
         m_initSequence = true;
     }
 
+    m_tardisPointLight.getIntensity() += m_speed3 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed3 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed3 = 8;
+
     m_camera.moveFront(m_speed * elapsedTime);
+    m_cameraPointLight.setPosition(m_camera.getPosition());
     m_tardisPosition.x -= 2.f*m_speed*elapsedTime;
     m_tardisPosition.y -= 0.5f*m_speed*elapsedTime;
-    m_tardisPointLight.setPosition(m_tardisPosition);
-    m_tardisPointLight.getPosition().y += 3;
     m_tardisRotation += 100*elapsedTime;
 
     if (m_tardisPosition.x <= 0){
@@ -1347,6 +1370,9 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
     }
 }
 
+void Project::tardisLandingFromSponzaWing(const float elapsed){
+
+}
 
 void Project::animation(const float elapsedTime){
 
@@ -1377,6 +1403,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 9:
             travellingCameraWithTardis(elapsedTime);
+            break;
+        case 10:
+            tardisLandingFromSponzaWing(elapsedTime);
             break;
     }
 

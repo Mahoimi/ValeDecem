@@ -228,6 +228,7 @@ private:
     glm::vec3 m_dispersionRadius;
     float m_speed;
     float m_speed2;
+    float m_speed3;
 
     glm::mat4 m_sponzaMatrix;
 
@@ -286,6 +287,7 @@ private:
     void oodCircleDispersionSequence(const float elapsedTime);
     void tardisSpaceSequence(const float elapsedTime);
     void travellingCameraWithTardis(const float elapsedTime);
+    void tardisLandingFromSponzaWing(const float elapsed);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
