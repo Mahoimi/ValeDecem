@@ -287,7 +287,7 @@ private:
     void oodCircleDispersionSequence(const float elapsedTime);
     void tardisSpaceSequence(const float elapsedTime);
     void travellingCameraWithTardis(const float elapsedTime);
-    void tardisLandingFromSponzaWing(const float elapsed);
+    void tardisLandingFromSponzaWing(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

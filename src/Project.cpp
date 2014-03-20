@@ -1195,7 +1195,6 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
 
         // Speed
         m_speed = 0.2f;
-        m_speed2 = 2.f;
 
         m_initSequence = true;
     }
@@ -1210,7 +1209,7 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
         }
     }
     if(m_camera.getTheta() < 20){
-        m_camera.rotateTheta(m_speed2*elapsedTime);
+        m_camera.rotateTheta(10*m_speed*elapsedTime);
     }
     else{
         // Finish sequence
@@ -1295,21 +1294,20 @@ void Project::tardisSpaceSequence(const float elapsedTime){
 
         // Speed
         m_speed = 8;
-        m_speed2 = 100;
-        m_speed3 = 8;
+        m_speed2 = 8;
 
         m_initSequence = true;
     }
 
 
-    m_tardisPointLight.getIntensity() += m_speed3 * elapsedTime;
-    if (m_tardisPointLight.getIntensity() > 8) m_speed3 = -8;
-    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed3 = 8;
+    m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed2 = 8;
 
     if(m_camera.getPosition().x < 0.5){
         m_camera.getPosition().x += m_speed * elapsedTime;
         m_cameraPointLight.setPosition(m_camera.getPosition());
-        m_tardisRotation += m_speed2 * elapsedTime;
+        m_tardisRotation += 12.5f * m_speed * elapsedTime;
     }
 
     else{
@@ -1349,13 +1347,15 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
 
         // Animation speed
         m_speed = 2.f;
-        m_speed3 = 8;
+        m_speed2 = 8;
         m_initSequence = true;
     }
 
-    m_tardisPointLight.getIntensity() += m_speed3 * elapsedTime;
-    if (m_tardisPointLight.getIntensity() > 8) m_speed3 = -8;
-    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed3 = 8;
+    m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed2 = 8;
+
+    m_oodPointLight[0].getPosition().y += m_speed*0.2f*elapsedTime;
 
     m_camera.moveFront(m_speed * elapsedTime);
     m_cameraPointLight.setPosition(m_camera.getPosition());
@@ -1370,8 +1370,54 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
     }
 }
 
-void Project::tardisLandingFromSponzaWing(const float elapsed){
+void Project::tardisLandingFromSponzaWing(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+        m_displayOods[1] = true;
+        m_displayOods[2] = true;
 
+        // Ood
+        m_oodPointLight[1].setPosition(glm::vec3(-4, 6, 3.5));
+        m_oodPointLight[2].setPosition(glm::vec3(4, 6, -5));
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,10,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 0.f;
+
+        // Camera
+        m_camera.setPosition(glm::vec3(0,8.5f,5));
+        m_camera.setPhi(-180);
+        m_camera.setTheta(0);
+
+        // Fx
+        m_focus = glm::vec3(3,1,20);
+
+        // Animation speed
+        m_speed = 1;
+        m_speed2 = 8;
+        m_initSequence = true;
+    }
+
+    m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed2 = 8;
+
+    m_camera.getPosition().y -= 0.5f*m_speed * elapsedTime;
+    m_tardisPosition.y -= m_speed * elapsedTime;
+    m_tardisRotation += 30*m_speed * elapsedTime;
+    m_oodPointLight[1].getPosition().x += m_speed * elapsedTime;
+    m_oodPointLight[2].getPosition().x -= m_speed * elapsedTime;
+
+    if (m_tardisPosition.y < 3){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
 }
 
 void Project::animation(const float elapsedTime){
