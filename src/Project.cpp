@@ -168,9 +168,14 @@ void Project::init(){
     m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
     m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
 
-    m_oodPointLight[0].init(glm::vec3(0, -0.3f, 0), glm::vec3(1, 1, .6f), 1);
-    m_oodPointLight[1].init(glm::vec3(11.2f, 1.f, 3.90f), glm::vec3(.6f, 1, .6f), 1);
-    m_oodPointLight[2].init(glm::vec3(11.4f, 0.2f, -4.8f), glm::vec3(.6f, .6f, 1), 1);
+    m_oodPointLight[0].init(glm::vec3(0), glm::vec3(1, 1, .8f), 1); // yellow-white
+    m_oodPointLight[1].init(glm::vec3(0), glm::vec3(.6f, 1, .6f), 1); // green
+    m_oodPointLight[2].init(glm::vec3(0), glm::vec3(.6f, .6f, 1), 1); // blue
+
+    for (unsigned int i = 3; i < 9; ++i){ // golden-yellow variations
+        float freq = 0.3f;
+        m_oodPointLight[i].init(glm::vec3(0), glm::vec3(sin(freq*i)*0.5+1, sin(freq*i+1)*0.5+1, sin(freq*i+2)*0.5+1), 1);
+    }
 
     // Fx parameters
     m_focus = glm::vec3(5.f, 1.f, 50.f);
@@ -204,12 +209,18 @@ void Project::init(){
     m_gui.addParameter(&m_cameraPointLight.getColor(), TW_TYPE_COLOR3F, "camera_pl_color", "group='Camera' label='Color'");
     m_gui.addParameter(&m_cameraPointLight.getIntensity(), TW_TYPE_FLOAT, "camera_pl_intensity", "group='Camera' label='Intensity' min=0 max=10 step=0.01");
 
-
     m_gui.addParameter(&m_tardisPosition, TW_TYPE_DIR3F, "tardis_position", "group='Tardis' label='Position'");
     m_gui.addParameter(&m_tardisRotationAxe, TW_TYPE_DIR3F, "tardis_rot_axe", "group='Tardis' label='Rotation Axe'");
     m_gui.addParameter(&m_tardisRotation, TW_TYPE_FLOAT, "tardis_rotation", "group='Tardis' label='Rotation angle'");
 
-    //m_gui.addParameter(&m_oodPosition, TW_TYPE_DIR3F, "ood_position", "group='Ood' label='Position'");
+    m_gui.addParameter(&m_oodPointLight[0].getPosition(), TW_TYPE_DIR3F, "ood_position0", "group='Oods' label='Position0'");
+    m_gui.addParameter(&m_oodPointLight[1].getPosition(), TW_TYPE_DIR3F, "ood_position1", "group='Oods' label='Position1'");
+    m_gui.addParameter(&m_oodPointLight[2].getPosition(), TW_TYPE_DIR3F, "ood_position2", "group='Oods' label='Position2'");
+    m_gui.addParameter(&m_oodPointLight[3].getPosition(), TW_TYPE_DIR3F, "ood_position3", "group='Oods' label='Position3'");
+    m_gui.addParameter(&m_oodPointLight[4].getPosition(), TW_TYPE_DIR3F, "ood_position4", "group='Oods' label='Position4'");
+    m_gui.addParameter(&m_oodPointLight[5].getPosition(), TW_TYPE_DIR3F, "ood_position5", "group='Oods' label='Position5'");
+    m_gui.addParameter(&m_oodPointLight[6].getPosition(), TW_TYPE_DIR3F, "ood_position6", "group='Oods' label='Position6'");
+    m_gui.addParameter(&m_oodPointLight[7].getPosition(), TW_TYPE_DIR3F, "ood_position7", "group='Oods' label='Position7'");
 
     m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'");
     m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01");
@@ -385,7 +396,7 @@ void Project::shadowMappingPass(){
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    for(unsigned int i=0; i<m_oodsNumber; ++i){
+    for(unsigned int i=0; i<OODS_NUMBER; ++i){
         if(m_displayOods[i]){
             // Reset model matrix
             m_modelMatrix = glm::mat4(1.f);
@@ -468,7 +479,7 @@ void Project::lightingByPointLight(){
     }
 
     // RENDER OODS POINTLIGHT //////////////////////////////////////////////////////////////////////////////////
-    for(unsigned int i = 0; i<m_oodsNumber; ++i){
+    for(unsigned int i = 0; i<OODS_NUMBER; ++i){
         if(m_displayOods[i]){
             glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_oodPointLight[i].getPosition()));
             glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_oodPointLight[i].getColor()));
@@ -605,7 +616,7 @@ void Project::unlightPass(){
     m_cube.render();
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
-    for(unsigned int i=0; i<m_oodsNumber; ++i){
+    for(unsigned int i=0; i<OODS_NUMBER; ++i){
         if(m_displayOods[i]){
             m_fxfbo.bindFramebufferWith(3);
 
@@ -877,7 +888,7 @@ void Project::sequence1(const float elapsedTime){
         m_displaySponza = false;
         m_displayDof = false;
         m_displayCameraPointLight = false;
-        for (unsigned i = 0; i<m_oodsNumber; i++){
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
             m_displayOods[i] = false;
         }
 
@@ -917,7 +928,7 @@ void Project::sequence1(const float elapsedTime){
 void Project::sequence2(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
-        for (unsigned i = 0; i<m_oodsNumber; i++){
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
             m_displayOods[i] = false;
         }
         m_displaySponza = true;
@@ -979,7 +990,7 @@ void Project::sequence2(const float elapsedTime){
 void Project::sequence3(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
-        for (unsigned i = 0; i<m_oodsNumber; i++){
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
             m_displayOods[i] = false;
         }
         m_displaySponza = true;
@@ -1057,7 +1068,7 @@ void Project::sequence4(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
 
-        for (unsigned i = 0; i<m_oodsNumber; i++){
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
             m_displayOods[i] = false;
         }
         m_displayOods[0] = true;
@@ -1085,12 +1096,12 @@ void Project::sequence4(const float elapsedTime){
     }
 }
 
-//// Two oods appears at the center of the atrium
+// Two oods pop out the fountains
 void Project::sequence5(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
 
-        for (unsigned i = 0; i<m_oodsNumber; i++){
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
             m_displayOods[i] = false;
         }
         m_displayCameraPointLight = false;
@@ -1121,6 +1132,62 @@ void Project::sequence5(const float elapsedTime){
     }
 }
 
+// Oods circle at the center of Sponza
+void Project::sequence6(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
+            m_displayOods[i] = false;
+        }
+        m_displayCameraPointLight = false;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        m_displayOods[0] = true;
+
+        m_oodPointLight[0].setPosition(glm::vec3(0, 2, 0));
+        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, -3, 0));
+
+        for (unsigned int i = 3; i < 9; ++i){
+            m_displayOods[i] = true;
+
+            glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*60.f, glm::vec3(0,1,0));
+            glm::mat4 radiusMatrix = glm::translate(rotMatrix, glm::vec3(0,0,1));
+
+            glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
+
+            m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y+i*0.5f, oodPosition.z));
+        }
+
+        m_camera.setPosition(glm::vec3(6.4, 0.2f, 1.3));
+        m_camera.setPhi(-100);
+        m_camera.setTheta(0);
+        m_focus = glm::vec3(2,1,20);
+        m_speed = 0.2f;
+        m_speed2 = 2.f;
+        m_initSequence = true;
+    }
+
+    if(m_oodPointLight[0].getPosition().y < 4){
+        m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
+        for (unsigned int i = 3; i < 9; ++i) {
+            if (m_oodPointLight[0].getPosition().y > m_oodPointLight[i].getPosition().y)
+                 m_oodPointLight[i].getPosition().y += (1.f/i + m_speed)* elapsedTime;
+            else
+                m_oodPointLight[i].getPosition().y += m_speed * elapsedTime;
+        }
+    }
+    if(m_camera.getTheta() < 20){
+        m_camera.rotateTheta(m_speed2*elapsedTime);
+    }
+    else{
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 7;
+    }
+}
+
 void Project::animation(const float elapsedTime){
 
     switch(m_animationSequence){
@@ -1138,6 +1205,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 5:
             sequence5(elapsedTime);
+            break;
+        case 6:
+            sequence6(elapsedTime);
             break;
     }
 }

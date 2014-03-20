@@ -23,6 +23,8 @@
 #include <FXFbo.h>
 #include <GUI.h>
 
+#define OODS_NUMBER 9
+
 /*!
 * \class Project
 * Create and Handle the sfml window events
@@ -47,7 +49,7 @@ private:
     PointLight m_cameraPointLight;
     PointLight m_tardisPointLight;
     SpotLight m_tardisSpotLight;
-    PointLight m_oodPointLight[3];
+    PointLight m_oodPointLight[OODS_NUMBER];
 
     // Textures
     CubemapTexture m_skyboxTexture;
@@ -252,11 +254,10 @@ private:
     unsigned char m_newSequence;
     bool m_initSequence;
     bool m_displayTardis;
-    bool m_displayOods[3];
+    bool m_displayOods[OODS_NUMBER];
     bool m_displaySponza;
     bool m_displayCameraPointLight;
     bool m_displayDof;
-    unsigned int m_oodsNumber = 3;
 
     void getInput();
     void clearBuffers();
@@ -277,6 +278,7 @@ private:
     void sequence3(const float elapsedTime);
     void sequence4(const float elapsedTime);
     void sequence5(const float elapsedTime);
+    void sequence6(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
