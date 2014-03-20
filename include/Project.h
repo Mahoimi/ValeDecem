@@ -221,6 +221,7 @@ private:
     glm::vec3 m_tardisPosition;
     glm::vec3 m_tardisRotationAxe;
     float m_tardisRotation;
+    float m_speed;
 
     glm::vec3 m_oodPosition;
 
@@ -246,11 +247,13 @@ private:
     sf::Music m_music;
 
     // Animation parameters
+    unsigned char m_animationSequence;
+    unsigned char m_newSequence;
+    bool m_initSequence;
     bool m_displayTardis;
     bool m_displayOods;
     bool m_displaySponza;
-
-    unsigned char m_animationSequence;
+    bool m_displayDof;
 
 	void getInput();
     void animation(const float elapsedTime);
@@ -265,6 +268,8 @@ private:
     void fxPass();
 	void blitPass();
 
+    void sequence1(const float elapsedTime);
+    void sequence2(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
@@ -272,6 +277,7 @@ public:
         m_debugMode(false){}
 	void init();
 	void run();
+    void playNewSequence();
 };
 
 #endif // PROJECT_H

@@ -13,6 +13,7 @@ public:
     GUI():m_bar(nullptr){}
     void init(const unsigned int width, const unsigned int height, const std::string& name);
     void addParameter(void* parameter, const ETwType& parameterType,const std::string &name, const std::string &definition, bool readandwrite=true);
+    void addPlayButton(const std::string& name, void *data, const std::string &definition);
     void draw() const;
     void terminate();
 };

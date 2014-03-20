@@ -177,21 +177,22 @@ void Project::init(){
     assert(m_music.openFromFile("../../assets/music/ValeDecem.ogg"));
     //m_music.play();
 
-    // Init animation parameters
-    m_displayTardis = true;
-    m_displayOods = true;
-    m_displaySponza = true;
-    m_animationSequence = '1';
-
+    // Animation parameters
+    m_animationSequence = 1;
+    m_newSequence = 1;
+    m_initSequence = false;
 
     // Init GUI
     m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
-    m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "label='Sponza'");
-    m_gui.addParameter(&m_displayTardis, TW_TYPE_BOOL8, "display_tardis", "label='Tardis'");
-    m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "label='Oods'");
+    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=9 step=1");
+    m_gui.addPlayButton("play_sequence",this,"label='Play sequence'");
+
+    m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
+    m_gui.addParameter(&m_displayTardis, TW_TYPE_BOOL8, "display_tardis", "group='Display' label='Tardis'");
+    m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "group='Display' label='Oods'");
 
     m_gui.addParameter(&m_camera.getPosition(), TW_TYPE_DIR3F, "camera_position", "group='Camera' label='Position'");
     m_gui.addParameter(&m_camera.getPhi(), TW_TYPE_FLOAT, "camera_phi", "group='Camera' label='Phi' step=1");
@@ -232,8 +233,8 @@ void Project::getInput(){
 
 	// Move the camera according to the mouse position when the left clic is pressed
     if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-        m_camera.rotateLeft(-0.4f*(m_mousePosition.x - m_prevMousePosition.x));
-        m_camera.rotateUp(-0.4f*(m_mousePosition.y - m_prevMousePosition.y));
+        m_camera.rotatePhi(-0.4f*(m_mousePosition.x - m_prevMousePosition.x));
+        m_camera.rotateTheta(-0.4f*(m_mousePosition.y - m_prevMousePosition.y));
     }
 
 	// Replace the previous position by the actual position
@@ -589,109 +590,131 @@ void Project::unlightPass(){
 }
 
 void Project::fxPass(){
-    // COC ////////////////////////
-    m_fxfbo.bindFramebufferWith(1);
+    if (m_displayDof){
+        // COC ////////////////////////
+        m_fxfbo.bindFramebufferWith(1);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
 
-    m_screenToView = glm::inverse(m_projectionMatrix);
+        m_screenToView = glm::inverse(m_projectionMatrix);
 
-    // Use coc shaders
-    m_cocGLSL.m_program.use();
+        // Use coc shaders
+        m_cocGLSL.m_program.use();
 
-    glUniform1i(m_cocGLSL.m_depthLocation, 0);
-    glUniform3fv(m_cocGLSL.m_focusLocation,1, glm::value_ptr(m_focus));
-    glUniformMatrix4fv(m_cocGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_cocGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_cocGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
-    glUniformMatrix4fv(m_cocGLSL.m_screenToViewLocation, 1, GL_FALSE, glm::value_ptr(m_screenToView));
+        glUniform1i(m_cocGLSL.m_depthLocation, 0);
+        glUniform3fv(m_cocGLSL.m_focusLocation,1, glm::value_ptr(m_focus));
+        glUniformMatrix4fv(m_cocGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_cocGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_cocGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+        glUniformMatrix4fv(m_cocGLSL.m_screenToViewLocation, 1, GL_FALSE, glm::value_ptr(m_screenToView));
 
-    // Bind depth texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+        // Bind depth texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
 
-    m_blitPlane.render();
+        m_blitPlane.render();
 
-    // BLUR //////////////////////
-    // Bind framebuffer
-    m_fxfbo.bindFramebufferWith(2);
+        // BLUR //////////////////////
+        // Bind framebuffer
+        m_fxfbo.bindFramebufferWith(2);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(0, 0, m_window.getSize().x / 2, m_window.getSize().y / 2);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glViewport(0, 0, m_window.getSize().x / 2, m_window.getSize().y / 2);
 
-    // Use blur shaders
-    m_blurGLSL.m_program.use();
+        // Use blur shaders
+        m_blurGLSL.m_program.use();
 
-    glUniform1i(m_blurGLSL.m_textureLocation, 0);
-    glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
-    glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+        glUniform1i(m_blurGLSL.m_textureLocation, 0);
+        glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
+        glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-    // Bind depth texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+        // Bind depth texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
 
-    m_blitPlane.render();
+        m_blitPlane.render();
 
-    // DEPTH OF FIELD //////////////
+        // DEPTH OF FIELD //////////////
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+        m_dofGLSL.m_program.use();
+        glUniform1i(m_dofGLSL.m_colorLocation, 0);
+        glUniform1i(m_dofGLSL.m_blurLocation, 1);
+        glUniform1i(m_dofGLSL.m_cocLocation, 2);
+        glUniformMatrix4fv(m_dofGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_dofGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_dofGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+        // Bind textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(1));
+
+        m_blitPlane.render();
+    }
+    else {
+        // Display lightedscene texture
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+        m_blitGLSL.m_program.use();
+        glUniform1i(m_blitGLSL.m_textureLocation, 0);
+        glUniformMatrix4fv(m_blitGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_blitGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_blitGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+        // Bind textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
+
+        m_blitPlane.render();
+    }
+    if (m_displayOods){
+        // BLUR GLOWMAP
+        m_fxfbo.bindFramebufferWith(2);
+
+        m_blurGLSL.m_program.use();
+        glUniform1i(m_blurGLSL.m_textureLocation, 0);
+        glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
+        glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+        glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+
+        // Bind depth texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(3));
+
+        m_blitPlane.render();
+
+        // BLEND GLOWMAP
+        glEnable(GL_BLEND);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // Use blit shaders
+        m_blitGLSL.m_program.use();
+
+        // Send uniform value
+        glUniform1i(m_blitGLSL.m_textureLocation, 0);
+
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
+
+        m_blitPlane.render();
+
+        glDisable(GL_BLEND);
+    }
+    // Debind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
-
-    m_dofGLSL.m_program.use();
-    glUniform1i(m_dofGLSL.m_colorLocation, 0);
-    glUniform1i(m_dofGLSL.m_blurLocation, 1);
-    glUniform1i(m_dofGLSL.m_cocLocation, 2);
-    glUniformMatrix4fv(m_dofGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_dofGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_dofGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
-
-    // Bind textures
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(0));
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(1));
-
-    m_blitPlane.render();
-
-    // BLUR GLOWMAP
-    m_fxfbo.bindFramebufferWith(2);
-
-    m_blurGLSL.m_program.use();
-    glUniform1i(m_blurGLSL.m_textureLocation, 0);
-    glUniform1f(m_blurGLSL.m_sampleCountLocation, m_sampleCount);
-    glUniformMatrix4fv(m_blurGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-    glUniformMatrix4fv(m_blurGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-    glUniformMatrix4fv(m_blurGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
-
-    // Bind depth texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(3));
-
-    m_blitPlane.render();
-
-    // BLEND GLOWMAP
-    glEnable(GL_BLEND);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Use blit shaders
-    m_blitGLSL.m_program.use();
-
-    // Send uniform value
-    glUniform1i(m_blitGLSL.m_textureLocation, 0);
-
-    // Bind color texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_fxfbo.getTexture(2));
-
-    m_blitPlane.render();
-
-    glDisable(GL_BLEND);
-
 }
 
 void Project::blitPass(){
@@ -790,14 +813,83 @@ void Project::blitPass(){
     m_blitPlane.render();
 }
 
+// Play the selected sequence
+void Project::playNewSequence(){
+    m_animationSequence = m_newSequence;
+    m_initSequence = false;
+}
+
+// Empty space view
+// Camera Phi goes from 230 to -77 with a slight acceleration and deceleration
+void Project::sequence1(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+        m_displayOods = false;
+        m_displaySponza = false;
+        m_displayDof = false;
+        m_speed = 1.f;
+        m_camera.setPosition(glm::vec3(0, 16, 0));
+        m_camera.setPhi(230);
+        m_camera.setTheta(54);
+        m_initSequence = true;
+    }
+
+    if (m_camera.getPhi() > -30){
+        // Accelerate
+        if (m_speed < 20.f){
+            m_speed += 0.05f;
+        }
+    }
+    else{
+        // Decelerate
+        if (m_speed > 1.f){
+            m_speed -= 0.05f;
+        }
+    }
+    if(m_camera.getPhi() > -77){
+        m_camera.rotatePhi(-m_speed*elapsedTime);
+    }
+    else{
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 2;
+    }
+}
+
+void Project::sequence2(const float elapsedTime){
+    if (!m_initSequence){
+        m_displaySponza = true;
+        m_displayDof = true;
+        m_camera.setPosition(glm::vec3(-13, 1.25f, -0.35f));
+        m_camera.setPhi(90);
+        m_camera.setTheta(0);
+        m_initSequence = true;
+    }
+    if(m_camera.getPosition().x < 0){
+        //m_camera.setPosition(m_camera.getPosition().xy, m_camera.getPosition().x);
+    }
+    else{
+        // Init sequence3
+        m_animationSequence = 3;
+    }
+}
+
 void Project::animation(const float elapsedTime){
 
+    switch(m_animationSequence){
+        case 1:
+            sequence1(elapsedTime);
+            break;
+        case 2:
+            sequence2(elapsedTime);
+            break;
+    }
 }
+
 
 void Project::run(){
     sf::Clock clock;
-    float prevTime = 0.f;
-    float currentTime;
+    float elapsedTime = 0.f;
 
 	m_prevMousePosition = sf::Mouse::getPosition(m_window);
 
@@ -805,6 +897,9 @@ void Project::run(){
     bool running = true;
     while (running)
     {
+        elapsedTime = clock.restart().asSeconds();
+        m_fps = 1.f/ elapsedTime;
+
         // Handle events
         sf::Event event;
         while (m_window.pollEvent(event))
@@ -835,7 +930,7 @@ void Project::run(){
 		getInput();
 
         // Update camera position/rotation and model matrices
-        animation(clock.getElapsedTime().asSeconds());
+        animation(elapsedTime);
 
         m_camera.computeDirectionVectors();
         m_viewMatrix = m_camera.getViewMatrix();
@@ -869,10 +964,5 @@ void Project::run(){
 
         // end the current frame (internally swaps the front and back buffers)
         m_window.display();
-
-        currentTime = clock.getElapsedTime().asSeconds();
-        m_fps = 1.f/ (currentTime - prevTime);
-        prevTime = currentTime;
-
     }
 }

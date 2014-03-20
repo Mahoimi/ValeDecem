@@ -52,11 +52,11 @@ class FreeFlyCamera {
             m_Position += t*m_UpVector;
         }
 
-        inline void rotateLeft(float degrees){
+        inline void rotatePhi(float degrees){
             m_fPhi += degrees;
         }
 
-        inline void rotateUp(float degrees){
+        inline void rotateTheta(float degrees){
             m_fTheta += degrees;
             if((m_fTheta>glm::degrees(M_PI/2))||(m_fTheta<glm::degrees(-M_PI/2))){
                 m_fTheta -= degrees;
@@ -82,6 +82,22 @@ class FreeFlyCamera {
         inline float& getTheta(){
             return m_fTheta;
         }
+
+        // Set the position in the 3D scene of the camera
+        inline void setPosition(glm::vec3 newPosition){
+            m_Position = newPosition;
+        }
+
+        // Set angle phi
+        inline void setPhi(float newPhi){
+            m_fPhi = newPhi;
+        }
+
+        // Set angle theta
+        inline void setTheta(float newTheta){
+            m_fTheta = newTheta;
+        }
+
 
         // Compute all the parameters and angles to get the spherical coordinates of the camera
         void computeDirectionVectors(){
