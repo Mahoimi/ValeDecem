@@ -46,7 +46,7 @@ private:
     DirectionalLight m_directionalLight;
     PointLight m_tardisPointLight;
     SpotLight m_tardisSpotLight;
-    PointLight m_oodPointLight[2];
+    PointLight m_oodPointLight[3];
 
     // Textures
     CubemapTexture m_skyboxTexture;
@@ -251,10 +251,10 @@ private:
     unsigned char m_newSequence;
     bool m_initSequence;
     bool m_displayTardis;
-    bool m_displayOods[2];
+    bool m_displayOods[3];
     bool m_displaySponza;
     bool m_displayDof;
-    unsigned int m_oodsNumber = 2;
+    unsigned int m_oodsNumber = 3;
 
     void getInput();
     void clearBuffers();
@@ -274,6 +274,7 @@ private:
     void sequence2(const float elapsedTime);
     void sequence3(const float elapsedTime);
     void sequence4(const float elapsedTime);
+    void sequence5(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

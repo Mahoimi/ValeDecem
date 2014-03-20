@@ -167,7 +167,8 @@ void Project::init(){
     m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
 
     m_oodPointLight[0].init(glm::vec3(0, -0.3f, 0), glm::vec3(1, 0, 0), 1);
-    m_oodPointLight[1].init(glm::vec3(11.4, -1.5, -4.8f), glm::vec3(0, 0, 1), 1);
+    m_oodPointLight[1].init(glm::vec3(11.2f, 1.f, 3.90f), glm::vec3(0, 1, 0), 1);
+    m_oodPointLight[2].init(glm::vec3(11.4f, 0.2f, -4.8f), glm::vec3(0, 0, 1), 1);
 
     // Fx parameters
     m_focus = glm::vec3(5.f, 1.f, 50.f);
@@ -1042,6 +1043,41 @@ void Project::sequence4(const float elapsedTime){
     }
 }
 
+//// Two oods appears at the center of the atrium
+void Project::sequence5(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+
+        for (unsigned i = 0; i<m_oodsNumber; i++){
+            m_displayOods[i] = false;
+        }
+
+        m_displayOods[1] = true;
+        m_oodPointLight[1].setPosition(glm::vec3(11.2f, 1.f, 3.90f));
+
+        m_displayOods[2] = true;
+        m_oodPointLight[2].setPosition(glm::vec3(11.4f, 0.2f, -4.8f));
+
+        m_displaySponza = true;
+        m_displayDof = false;
+        m_camera.setPosition(glm::vec3(12.5, 2.2f, -6.3));
+        m_camera.setPhi(-22);
+        m_camera.setTheta(-11);
+        m_focus = glm::vec3(2,1,20);
+        m_speed = 0.5f;
+        m_initSequence = true;
+    }
+
+    if(m_oodPointLight[1].getPosition().y < 3){
+        m_oodPointLight[1].getPosition().y += m_speed * elapsedTime;
+        m_oodPointLight[2].getPosition().y += m_speed * elapsedTime;
+    }
+    else{
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 6;
+    }
+}
 
 void Project::animation(const float elapsedTime){
 
@@ -1057,6 +1093,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 4:
             sequence4(elapsedTime);
+            break;
+        case 5:
+            sequence5(elapsedTime);
             break;
     }
 }
