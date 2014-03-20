@@ -272,6 +272,7 @@ private:
 
     void sequence1(const float elapsedTime);
     void sequence2(const float elapsedTime);
+    void sequence3(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

@@ -870,6 +870,8 @@ void Project::sequence1(const float elapsedTime){
 // Camera PosX goes from -13 to 0 with a slight acceleration and deceleration
 void Project::sequence2(const float elapsedTime){
     if (!m_initSequence){
+        m_displayTardis = false;
+        m_displayOods = false;
         m_displaySponza = true;
         m_displayDof = true;
         m_camera.setPosition(glm::vec3(-13, 3.f, -0.35f));
@@ -910,7 +912,75 @@ void Project::sequence2(const float elapsedTime){
     else{
         // Init next sequence
         m_initSequence = false;
-        m_animationSequence = 2;
+        m_animationSequence = 3;
+    }
+}
+
+// Pan from bottom to top in the center of the attrium
+// Camera Phi 240 -> 120
+// Camera Theta 0 -> 70 -> 0
+void Project::sequence3(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+        m_displayOods = false;
+        m_displaySponza = true;
+        m_displayDof = true;
+        m_camera.setPosition(glm::vec3(0, 1.25f, -.5f));
+        m_camera.setPhi(240);
+        m_camera.setTheta(0);
+        m_focus = glm::vec3(2,1,20);
+        m_speed = 1.f;
+        m_speed2 = 1.f;
+        m_initSequence = true;
+    }
+
+    // Acceleration of Phi
+    if (m_camera.getPhi() > 130){
+
+        if (m_speed2 < 12.f){
+            m_speed2 += 0.1f;
+        }
+    }
+
+    m_camera.getPhi() -= m_speed2 * elapsedTime;
+
+    if (m_camera.getPhi() > 180){
+        // Acceleration of Theta
+        if (m_camera.getTheta() < 40){
+
+            if (m_speed < 20.f){
+                m_speed += 0.2f;
+            }
+        }
+        else{
+            if (m_speed > 0.2f){
+                m_speed -= 0.2f;
+            }
+        }
+
+        if (m_camera.getTheta() < 70) m_camera.getTheta() += m_speed * elapsedTime;
+    }
+    else{
+        // Acceleration of Theta
+        if (m_camera.getTheta() > 30){
+
+            if (m_speed < 20.f){
+                m_speed += 0.2f;
+            }
+        }
+        else{
+            if (m_speed > 0.2f){
+                m_speed -= 0.2f;
+            }
+        }
+        if (m_camera.getTheta() > 0) m_camera.getTheta() -= m_speed * elapsedTime;
+    }
+
+
+    if(m_camera.getPhi() < 120){
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 3;
     }
 }
 
@@ -922,6 +992,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 2:
             sequence2(elapsedTime);
+            break;
+        case 3:
+            sequence3(elapsedTime);
             break;
     }
 }
