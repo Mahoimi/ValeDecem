@@ -141,7 +141,6 @@ void MeshRenderer::initMaterials(const aiScene *pScene, const std::string &filen
                m_Textures[i] = new GLTexture;
 
                m_Textures[i]->load(FullPath.c_str());
-               printf("Loaded texture '%s'\n", FullPath.c_str());
            }
         }
 

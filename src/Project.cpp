@@ -1420,6 +1420,48 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
     }
 }
 
+void Project::tardisLandingFromAttrium(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,5,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 90.f;
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-5,0.5f,0));
+        m_camera.setPhi(-270);
+        m_camera.setTheta(45);
+
+        // Fx
+        m_focus = glm::vec3(3,1,20);
+
+        // Animation speed
+        m_speed = 0.75f;
+        m_speed2 = 8;
+        m_initSequence = true;
+    }
+
+    m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed2 = 8;
+
+    m_tardisPosition.y -= m_speed * elapsedTime;
+    m_tardisRotation += 30*m_speed * elapsedTime;
+    m_camera.getTheta() -= 7*m_speed * elapsedTime;
+
+    if (m_tardisPosition.y < 0){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
 void Project::animation(const float elapsedTime){
 
     switch(m_animationSequence){
@@ -1452,6 +1494,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 10:
             tardisLandingFromSponzaWing(elapsedTime);
+            break;
+        case 11:
+            tardisLandingFromAttrium(elapsedTime);
             break;
     }
 

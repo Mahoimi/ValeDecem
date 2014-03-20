@@ -41,7 +41,6 @@ GLuint GLProgram::load(const char* vertexShaderFile, const char* fragmentShaderF
     int InfoLogLength;
 
     // Compile Vertex Shader
-    std::cout << "Compiling shader : " << vertexShaderFile << std::endl;
     glShaderSource(VertexShaderID, 1, &VertexShaderCode , NULL);
     glCompileShader(VertexShaderID);
 
@@ -59,7 +58,6 @@ GLuint GLProgram::load(const char* vertexShaderFile, const char* fragmentShaderF
     }
 
     // Compile Fragment Shader
-    std::cout << "Compiling shader : " <<  fragmentShaderFile << std::endl;
     glShaderSource(FragmentShaderID, 1, &FragmentShaderCode , NULL);
     glCompileShader(FragmentShaderID);
 
@@ -90,7 +88,6 @@ GLuint GLProgram::load(const char* vertexShaderFile, const char* fragmentShaderF
         const char* GeometryShaderCode = gscode.c_str();
 
         // Compile Geometry Shader
-        std::cout << "Compiling shader :" <<  geometryShaderFile << std::endl;
         glShaderSource(GeometryShaderID, 1, &GeometryShaderCode , NULL);
         glCompileShader(GeometryShaderID);
 
@@ -111,7 +108,6 @@ GLuint GLProgram::load(const char* vertexShaderFile, const char* fragmentShaderF
     }
 
     // Link the program
-    fprintf(stdout, "Linking program\n");
     glLinkProgram(m_programID);
 
     // Check the program
