@@ -879,25 +879,33 @@ void Project::playNewSequence(){
     m_initSequence = false;
 }
 
+// Set all display booleans to true/false
+void Project::setAllDisplay(bool b){
+    for (unsigned int i = 0; i < OODS_NUMBER; ++i)
+        m_displayOods[i] = b;
+    m_displayTardis = b;
+    m_displaySponza = b;
+    m_displayCameraPointLight = b;
+    m_displayDof = b;
+}
+
 // Empty space view
 // Camera Phi goes from 230 to -77 with a slight acceleration and deceleration
 void Project::emptySpaceSequence(const float elapsedTime){
     if (!m_initSequence){
+        // Music
         m_music.stop();
         m_music.play();
 
-        m_displayTardis = false;
-        m_displaySponza = false;
-        m_displayDof = false;
-        m_displayCameraPointLight = false;
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
+        // Display
+        setAllDisplay(false);
 
+        // Camera
         m_camera.setPosition(glm::vec3(0, 16, 0));
         m_camera.setPhi(230);
         m_camera.setTheta(54);
 
+        // Speed
         m_speed = 1.f;
 
         m_initSequence = true;
@@ -929,22 +937,23 @@ void Project::emptySpaceSequence(const float elapsedTime){
 // Camera PosX goes from -13 to 0 with a slight acceleration and deceleration
 void Project::emptySponzaTravellingSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
         m_displayCameraPointLight = true;
 
+        // Camera
         m_camera.setPosition(glm::vec3(-13, 3.f, -0.35f));
         m_cameraPointLight.setPosition(m_camera.getPosition());
         m_cameraPointLight.setIntensity(5.f);
         m_camera.setPhi(90);
         m_camera.setTheta(0);
 
+        // Fx
         m_focus = glm::vec3(2,1,20);
 
+        // Speed
         m_speed = 1.f;
         m_speed2 = 0.3f;
 
@@ -991,22 +1000,23 @@ void Project::emptySponzaTravellingSequence(const float elapsedTime){
 // Camera Theta 0 -> 70 -> 0
 void Project::emptySponzaPanSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
         m_displayCameraPointLight = true;
 
+        // Camera
         m_camera.setPosition(glm::vec3(0, 1.25f, -.5f));
         m_cameraPointLight.setPosition(m_camera.getPosition());
         m_cameraPointLight.setIntensity(2.f);
         m_camera.setPhi(240);
         m_camera.setTheta(0);
 
+        // Fx
         m_focus = glm::vec3(2,1,20);
 
+        // Speed
         m_speed = 1.f;
         m_speed2 = 1.f;
 
@@ -1068,21 +1078,26 @@ void Project::emptySponzaPanSequence(const float elapsedTime){
 // A ood appears at the center of the atrium
 void Project::oodApparitionSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
-        m_displayOods[0] = true;
-        m_oodPointLight[0].setPosition(glm::vec3(0, -0.3f, 0));
-        m_displayCameraPointLight = false;
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
+        m_displayOods[0] = true;
+
+        // Oods
+        m_oodPointLight[0].setPosition(glm::vec3(0, -0.3f, 0));
+
+        // Camera
         m_camera.setPosition(glm::vec3(-3, 0.1f, 1.4f));
         m_camera.setPhi(110);
         m_camera.setTheta(5);
+
+        // Fx
         m_focus = glm::vec3(2,1,20);
+
+        // Speed
         m_speed = 0.2f;
+
         m_initSequence = true;
     }
 
@@ -1101,25 +1116,28 @@ void Project::oodApparitionSequence(const float elapsedTime){
 // Two oods pop out the fountains
 void Project::oodFountainSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
-        m_displayCameraPointLight = false;
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
         m_displayOods[1] = true;
         m_displayOods[2] = true;
 
+        // Oods
         m_oodPointLight[1].setPosition(glm::vec3(11.2f, 1.f, 3.90f));
         m_oodPointLight[2].setPosition(glm::vec3(11.4f, 0.2f, -4.8f));
 
+        // Camera
         m_camera.setPosition(glm::vec3(12.5, 2.2f, -6.3));
         m_camera.setPhi(-22);
         m_camera.setTheta(-11);
+
+        // Fx
         m_focus = glm::vec3(2,1,20);
+
+        // Speed
         m_speed = 0.5f;
+
         m_initSequence = true;
     }
 
@@ -1137,17 +1155,13 @@ void Project::oodFountainSequence(const float elapsedTime){
 // Oods circle at the center of Sponza
 void Project::oodCircleElevationSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
-        m_displayCameraPointLight = false;
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
-
         m_displayOods[0] = true;
 
+        // Oods
         m_oodPointLight[0].setPosition(glm::vec3(0, 2, 0));
         glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, -3, 0));
 
@@ -1162,12 +1176,18 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
             m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y+i*0.5f, oodPosition.z));
         }
 
+        // Camera
         m_camera.setPosition(glm::vec3(6.4, 0.2f, 1.3));
         m_camera.setPhi(-100);
         m_camera.setTheta(0);
+
+        // Fx
         m_focus = glm::vec3(2,1,20);
+
+        // Speed
         m_speed = 0.2f;
         m_speed2 = 2.f;
+
         m_initSequence = true;
     }
 
@@ -1194,17 +1214,13 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
 // Oods dispersion
 void Project::oodCircleDispersionSequence(const float elapsedTime){
     if (!m_initSequence){
-        m_displayTardis = false;
-
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
-        m_displayCameraPointLight = false;
+        // Display
+        setAllDisplay(false);
         m_displaySponza = true;
         m_displayDof = true;
-
         m_displayOods[0] = true;
 
+        // Oods
         m_oodPointLight[0].setPosition(glm::vec3(0, 4, 0));
         m_dispersionRadius = glm::vec3(0,0,1);
 
@@ -1212,10 +1228,15 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
             m_displayOods[i] = true;
         }
 
+        // Camera
         m_camera.setPosition(glm::vec3(10.5f, 6.7f, 0.8f));
         m_camera.setPhi(-100);
         m_camera.setTheta(-20);
+
+        // Fx
         m_focus = glm::vec3(8,1,20);
+
+        // Speed
         m_speed = 0.8f;
         m_initSequence = true;
     }
@@ -1243,38 +1264,43 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
 
 void Project::travellingCameraWithTardis(const float elapsedTime){
     if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
         m_displayTardis = true;
-
-        for (unsigned i = 0; i<OODS_NUMBER; i++){
-            m_displayOods[i] = false;
-        }
-        m_displayCameraPointLight = false;
         m_displaySponza = true;
         m_displayDof = true;
+        m_displayOods[0] = true;
 
-        m_camera.setPosition(glm::vec3(10.5f, 6.7f, 0.8f));
-        m_camera.setPhi(-100);
-        m_camera.setTheta(-20);
-        m_focus = glm::vec3(8,1,20);
-        m_speed = 0.8f;
+        // Ood
+        m_oodPointLight[0].setPosition(glm::vec3(0, 8, 0));
+
+        // Tardis
+        m_tardisPosition = glm::vec3(20,17,0);
+        m_tardisPointLight.setPosition(glm::vec3(13,19,0));
+        m_tardisRotationAxe = glm::vec3(-3, 9, 0);
+        m_tardisRotation = 0.f;
+
+        // Camera
+        m_camera.setPosition(glm::vec3(17.5f,20.5f,4));
+        m_camera.setPhi(-108);
+        m_camera.setTheta(-36);
+
+        // Fx
+        m_focus = glm::vec3(3,1,20);
+
+        // Animation speed
+        m_speed = 2.f;
         m_initSequence = true;
     }
 
+    m_camera.moveFront(m_speed * elapsedTime);
+    m_tardisPosition.x -= 2.f*m_speed*elapsedTime;
+    m_tardisPosition.y -= 0.5f*m_speed*elapsedTime;
+    m_tardisPointLight.setPosition(m_tardisPosition);
+    m_tardisPointLight.getPosition().y += 3;
+    m_tardisRotation += 100*elapsedTime;
 
-    if(m_oodPointLight[0].getPosition().y < 8){
-        m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
-        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, m_oodPointLight[0].getPosition().y, 0));
-        m_dispersionRadius.z += m_speed * elapsedTime;
-        for (unsigned int i = 3; i < 9; ++i){
-            glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*60.f, glm::vec3(0,1,0));
-            glm::mat4 radiusMatrix = glm::translate(rotMatrix, m_dispersionRadius);
-
-            glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
-
-            m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
-        }
-    }
-    else{
+    if (m_tardisPosition.x <= 0){
         // Finish sequence
         m_initSequence = false;
         m_endSequence = true;
@@ -1305,6 +1331,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 7:
             oodCircleDispersionSequence(elapsedTime);
+            break;
+        case 9:
+            travellingCameraWithTardis(elapsedTime);
             break;
     }
 

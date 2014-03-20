@@ -263,8 +263,7 @@ private:
 
     void getInput();
     void clearBuffers();
-    void animation(const float elapsedTime);
-	void gBufferPass();
+    void gBufferPass();
     void shadowMappingPass();
     void lightingByAmbiantLight();
 	void lightingByPointLight();
@@ -275,6 +274,9 @@ private:
     void fxPass();
 	void blitPass();
 
+    void animation(const float elapsedTime);
+    void setAllDisplay(bool b);
+
     void emptySpaceSequence(const float elapsedTime);
     void emptySponzaTravellingSequence(const float elapsedTime);
     void emptySponzaPanSequence(const float elapsedTime);
@@ -282,6 +284,7 @@ private:
     void oodFountainSequence(const float elapsedTime);
     void oodCircleElevationSequence(const float elapsedTime);
     void oodCircleDispersionSequence(const float elapsedTime);
+    void travellingCameraWithTardis(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
