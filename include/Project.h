@@ -284,6 +284,7 @@ private:
     void oodFountainSequence(const float elapsedTime);
     void oodCircleElevationSequence(const float elapsedTime);
     void oodCircleDispersionSequence(const float elapsedTime);
+    void tardisSpaceSequence(const float elapsedTime);
     void travellingCameraWithTardis(const float elapsedTime);
 
 public:

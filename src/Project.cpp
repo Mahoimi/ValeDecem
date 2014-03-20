@@ -1262,6 +1262,46 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
     }
 }
 
+// Tardis in Space TODO add tardis point light
+void Project::tardisSpaceSequence(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0.f, 18.5, 0.5f);
+        m_tardisRotationAxe = glm::vec3(-3.f, 9.f, 0.f);
+        m_tardisRotation = 0.0;
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-22.f, 20.f, 5.f));
+        m_camera.setPhi(-220);
+        m_camera.setTheta(0);
+
+        // Fx
+        m_focus = glm::vec3(8,1,20);
+
+        // Speed
+        m_speed = 8.f;
+        m_speed2 = 100.f;
+
+        m_initSequence = true;
+    }
+
+    if(m_camera.getPosition().x < 0.5){
+        m_camera.getPosition().x += m_speed * elapsedTime;
+        // Tardis rotation
+        m_tardisRotation += m_speed2 * elapsedTime;
+    }
+
+    else{
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
 void Project::travellingCameraWithTardis(const float elapsedTime){
     if (!m_initSequence){
         // Display
@@ -1331,6 +1371,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 7:
             oodCircleDispersionSequence(elapsedTime);
+            break;
+        case 8:
+            tardisSpaceSequence(elapsedTime);
             break;
         case 9:
             travellingCameraWithTardis(elapsedTime);
