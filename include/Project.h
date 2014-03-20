@@ -222,6 +222,7 @@ private:
     glm::vec3 m_tardisRotationAxe;
     float m_tardisRotation;
     float m_speed;
+    float m_speed2;
 
     glm::vec3 m_oodPosition;
 

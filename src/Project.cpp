@@ -866,21 +866,51 @@ void Project::sequence1(const float elapsedTime){
     }
 }
 
+// Travelling in the center of the attrium
+// Camera PosX goes from -13 to 0 with a slight acceleration and deceleration
 void Project::sequence2(const float elapsedTime){
     if (!m_initSequence){
         m_displaySponza = true;
         m_displayDof = true;
-        m_camera.setPosition(glm::vec3(-13, 1.25f, -0.35f));
+        m_camera.setPosition(glm::vec3(-13, 3.f, -0.35f));
         m_camera.setPhi(90);
         m_camera.setTheta(0);
+        m_focus = glm::vec3(2,1,20);
+        m_speed = 1.f;
+        m_speed2 = 0.3f;
         m_initSequence = true;
     }
-    if(m_camera.getPosition().x < 0){
-        //m_camera.setPosition(m_camera.getPosition().xy, m_camera.getPosition().x);
+
+    if (m_camera.getPosition().y < 2){
+        if (m_speed2 > 0.1f){
+            m_speed2 -= 0.01f;
+        }
+    }
+
+    if (m_camera.getPosition().y > 1.25){
+        m_camera.getPosition().y -= m_speed2 * elapsedTime;
+    }
+
+    if (m_camera.getPosition().x < -5){
+        // Accelerate
+        if (m_speed < 5.f){
+            m_speed += 0.01f;
+        }
     }
     else{
-        // Init sequence3
-        m_animationSequence = 3;
+        // Decelerate
+        if (m_speed > 1.f){
+            m_speed -= 0.01f;
+        }
+    }
+
+    if(m_camera.getPosition().x < 0){
+        m_camera.getPosition().x += m_speed * elapsedTime;
+    }
+    else{
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 2;
     }
 }
 
