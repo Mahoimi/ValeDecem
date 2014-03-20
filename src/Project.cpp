@@ -1281,6 +1281,7 @@ void Project::tardisSpaceSequence(const float elapsedTime){
         m_tardisPosition = glm::vec3(0.f, 18.5, 0.5f);
         m_tardisRotationAxe = glm::vec3(-3, 9, 0);
         m_tardisRotation = 0;
+        m_tardisPointLight.setIntensity(0.f);
 
         // Camera
         m_camera.setPosition(glm::vec3(-22, 20, 5));
@@ -1334,6 +1335,7 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
         m_tardisPosition = glm::vec3(20,17,0);
         m_tardisRotationAxe = glm::vec3(-3, 9, 0);
         m_tardisRotation = 0.f;
+        m_tardisPointLight.setIntensity(0.f);
 
         // Camera
         m_camera.setPosition(glm::vec3(17.5f,20.5f,4));
@@ -1388,9 +1390,10 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
         m_tardisPosition = glm::vec3(0,10,0);
         m_tardisRotationAxe = glm::vec3(0, 1, 0);
         m_tardisRotation = 0.f;
+        m_tardisPointLight.setIntensity(0.f);
 
         // Camera
-        m_camera.setPosition(glm::vec3(0,8.5f,5));
+        m_camera.setPosition(glm::vec3(0,8,5));
         m_camera.setPhi(-180);
         m_camera.setTheta(0);
 
@@ -1398,7 +1401,7 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
         m_focus = glm::vec3(3,1,20);
 
         // Animation speed
-        m_speed = 0.75f;
+        m_speed = 0.5f;
         m_speed2 = 8;
         m_initSequence = true;
     }
@@ -1432,6 +1435,7 @@ void Project::tardisLandingFromAttrium(const float elapsedTime){
         m_tardisPosition = glm::vec3(0,5,0);
         m_tardisRotationAxe = glm::vec3(0, 1, 0);
         m_tardisRotation = 90.f;
+        m_tardisPointLight.setIntensity(0.f);
 
         // Camera
         m_camera.setPosition(glm::vec3(-5,0.5f,0));
@@ -1442,7 +1446,7 @@ void Project::tardisLandingFromAttrium(const float elapsedTime){
         m_focus = glm::vec3(3,1,20);
 
         // Animation speed
-        m_speed = 0.75f;
+        m_speed = 0.5f;
         m_speed2 = 8;
         m_initSequence = true;
     }
@@ -1456,6 +1460,65 @@ void Project::tardisLandingFromAttrium(const float elapsedTime){
     m_camera.getTheta() -= 7*m_speed * elapsedTime;
 
     if (m_tardisPosition.y < 0){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
+void Project::oodsMultiplication(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i)
+            m_displayOods[i] = true;
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        // Oods
+        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0.5, 0));
+        m_dispersionRadius = glm::vec3(10,10,10);
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+            glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*360.f/OODS_NUMBER*m_dispersionRadius.z, glm::vec3(0,1,0));
+            glm::mat4 radiusMatrix = glm::translate(rotMatrix, m_dispersionRadius);
+
+            glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
+
+            m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
+        }
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(0.f);
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-10,10,0));
+        m_camera.setPhi(-270);
+        m_camera.setTheta(-40);
+
+        // Fx
+        m_focus = glm::vec3(7,1,20);
+
+        // Animation speed
+        m_speed = 0.3f;
+        m_initSequence = true;
+    }
+
+    m_camera.moveFront(0.5f*m_speed*elapsedTime);
+    m_dispersionRadius -= glm::vec3(m_speed * elapsedTime);
+    glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0.5, 0));
+    for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+        glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*360.f/OODS_NUMBER*m_dispersionRadius.z, glm::vec3(0,1,0));
+        glm::mat4 radiusMatrix = glm::translate(rotMatrix, m_dispersionRadius);
+        glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
+
+        m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
+    }
+
+    if (m_dispersionRadius.x<0.1f){
         // Finish sequence
         m_initSequence = false;
         m_endSequence = true;
@@ -1497,6 +1560,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 11:
             tardisLandingFromAttrium(elapsedTime);
+            break;
+        case 12:
+            oodsMultiplication(elapsedTime);
             break;
     }
 

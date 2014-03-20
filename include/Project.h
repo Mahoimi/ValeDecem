@@ -289,6 +289,7 @@ private:
     void travellingCameraWithTardis(const float elapsedTime);
     void tardisLandingFromSponzaWing(const float elapsedTime);
     void tardisLandingFromAttrium(const float elapsedTime);
+    void oodsMultiplication(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
