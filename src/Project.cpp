@@ -332,9 +332,9 @@ void Project::gBufferPass(){
     if(m_displayTardis){
         // Reset model matrix
         m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
         m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
 
         // Send uniform data
         glUniform1i(m_texturedMeshGLSL.m_diffuseLocation, 0);
@@ -384,9 +384,10 @@ void Project::shadowMappingPass(){
     if(m_displayTardis){
         // Reset model matrix
         m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
         m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
 
         // Send uniform data
         glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
@@ -1222,7 +1223,7 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
 
     if(m_oodPointLight[0].getPosition().y < 8){
         m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
-        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 4, 0));
+        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, m_oodPointLight[0].getPosition().y, 0));
         m_dispersionRadius.z += m_speed * elapsedTime;
         for (unsigned int i = 3; i < 9; ++i){
             glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*60.f, glm::vec3(0,1,0));
@@ -1240,6 +1241,45 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
     }
 }
 
+void Project::travellingCameraWithTardis(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = true;
+
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
+            m_displayOods[i] = false;
+        }
+        m_displayCameraPointLight = false;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        m_camera.setPosition(glm::vec3(10.5f, 6.7f, 0.8f));
+        m_camera.setPhi(-100);
+        m_camera.setTheta(-20);
+        m_focus = glm::vec3(8,1,20);
+        m_speed = 0.8f;
+        m_initSequence = true;
+    }
+
+
+    if(m_oodPointLight[0].getPosition().y < 8){
+        m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
+        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, m_oodPointLight[0].getPosition().y, 0));
+        m_dispersionRadius.z += m_speed * elapsedTime;
+        for (unsigned int i = 3; i < 9; ++i){
+            glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*60.f, glm::vec3(0,1,0));
+            glm::mat4 radiusMatrix = glm::translate(rotMatrix, m_dispersionRadius);
+
+            glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
+
+            m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
+        }
+    }
+    else{
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
 
 
 void Project::animation(const float elapsedTime){
