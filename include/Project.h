@@ -225,6 +225,7 @@ private:
     glm::vec3 m_tardisPosition;
     glm::vec3 m_tardisRotationAxe;
     float m_tardisRotation;
+    glm::vec3 m_dispersionRadius;
     float m_speed;
     float m_speed2;
 
@@ -253,6 +254,7 @@ private:
     unsigned char m_animationSequence;
     unsigned char m_newSequence;
     bool m_initSequence;
+    bool m_endSequence;
     bool m_displayTardis;
     bool m_displayOods[OODS_NUMBER];
     bool m_displaySponza;
@@ -273,12 +275,13 @@ private:
     void fxPass();
 	void blitPass();
 
-    void sequence1(const float elapsedTime);
-    void sequence2(const float elapsedTime);
-    void sequence3(const float elapsedTime);
-    void sequence4(const float elapsedTime);
-    void sequence5(const float elapsedTime);
-    void sequence6(const float elapsedTime);
+    void emptySpaceSequence(const float elapsedTime);
+    void emptySponzaTravellingSequence(const float elapsedTime);
+    void emptySponzaPanSequence(const float elapsedTime);
+    void oodApparitionSequence(const float elapsedTime);
+    void oodFountainSequence(const float elapsedTime);
+    void oodCircleElevationSequence(const float elapsedTime);
+    void oodCircleDispersionSequence(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

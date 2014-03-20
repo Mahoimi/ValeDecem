@@ -189,6 +189,7 @@ void Project::init(){
     m_animationSequence = 1;
     m_newSequence = 1;
     m_initSequence = false;
+    m_endSequence = false;
 
     // Init GUI
     m_gui.init(m_window.getSize().x, m_window.getSize().y, "Debug window");
@@ -879,7 +880,7 @@ void Project::playNewSequence(){
 
 // Empty space view
 // Camera Phi goes from 230 to -77 with a slight acceleration and deceleration
-void Project::sequence1(const float elapsedTime){
+void Project::emptySpaceSequence(const float elapsedTime){
     if (!m_initSequence){
         m_music.stop();
         m_music.play();
@@ -917,15 +918,15 @@ void Project::sequence1(const float elapsedTime){
         m_camera.rotatePhi(-m_speed*elapsedTime);
     }
     else{
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 2;
+        m_endSequence = true;
     }
 }
 
 // Travelling in the center of the attrium
 // Camera PosX goes from -13 to 0 with a slight acceleration and deceleration
-void Project::sequence2(const float elapsedTime){
+void Project::emptySponzaTravellingSequence(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
         for (unsigned i = 0; i<OODS_NUMBER; i++){
@@ -978,16 +979,16 @@ void Project::sequence2(const float elapsedTime){
         m_camera.getPosition().x += m_speed * elapsedTime;
     }
     else{
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 3;
+        m_endSequence = true;
     }
 }
 
 // Pan from bottom to top in the center of the attrium
 // Camera Phi 240 -> 120
 // Camera Theta 0 -> 70 -> 0
-void Project::sequence3(const float elapsedTime){
+void Project::emptySponzaPanSequence(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
         for (unsigned i = 0; i<OODS_NUMBER; i++){
@@ -1057,14 +1058,14 @@ void Project::sequence3(const float elapsedTime){
 
 
     if(m_camera.getPhi() < 120){
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 4;
+        m_endSequence = true;
     }
 }
 
 // A ood appears at the center of the atrium
-void Project::sequence4(const float elapsedTime){
+void Project::oodApparitionSequence(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
 
@@ -1090,14 +1091,14 @@ void Project::sequence4(const float elapsedTime){
         m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
     }
     else{
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 5;
+        m_endSequence = true;
     }
 }
 
 // Two oods pop out the fountains
-void Project::sequence5(const float elapsedTime){
+void Project::oodFountainSequence(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
 
@@ -1126,14 +1127,14 @@ void Project::sequence5(const float elapsedTime){
         m_oodPointLight[2].getPosition().y += m_speed * elapsedTime;
     }
     else{
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 6;
+        m_endSequence = true;
     }
 }
 
 // Oods circle at the center of Sponza
-void Project::sequence6(const float elapsedTime){
+void Project::oodCircleElevationSequence(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
 
@@ -1182,33 +1183,95 @@ void Project::sequence6(const float elapsedTime){
         m_camera.rotateTheta(m_speed2*elapsedTime);
     }
     else{
-        // Init next sequence
+        // Finish sequence
         m_initSequence = false;
-        m_animationSequence = 7;
+        m_endSequence = true;
     }
 }
+
+
+// Oods dispersion
+void Project::oodCircleDispersionSequence(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+
+        for (unsigned i = 0; i<OODS_NUMBER; i++){
+            m_displayOods[i] = false;
+        }
+        m_displayCameraPointLight = false;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        m_displayOods[0] = true;
+
+        m_oodPointLight[0].setPosition(glm::vec3(0, 4, 0));
+        m_dispersionRadius = glm::vec3(0,0,1);
+
+        for (unsigned int i = 3; i < 9; ++i){
+            m_displayOods[i] = true;
+        }
+
+        m_camera.setPosition(glm::vec3(10.5f, 6.7f, 0.8f));
+        m_camera.setPhi(-100);
+        m_camera.setTheta(-20);
+        m_focus = glm::vec3(8,1,20);
+        m_speed = 0.8f;
+        m_initSequence = true;
+    }
+
+
+    if(m_oodPointLight[0].getPosition().y < 8){
+        m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
+        glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 4, 0));
+        m_dispersionRadius.z += m_speed * elapsedTime;
+        for (unsigned int i = 3; i < 9; ++i){
+            glm::mat4 rotMatrix = glm::rotate(centerMatrix, i*60.f, glm::vec3(0,1,0));
+            glm::mat4 radiusMatrix = glm::translate(rotMatrix, m_dispersionRadius);
+
+            glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
+
+            m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
+        }
+    }
+    else{
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
+
 
 void Project::animation(const float elapsedTime){
 
     switch(m_animationSequence){
         case 1:
-            sequence1(elapsedTime);
+            emptySpaceSequence(elapsedTime);
             break;
         case 2:
-            sequence2(elapsedTime);
+            emptySponzaTravellingSequence(elapsedTime);
             break;
         case 3:
-            sequence3(elapsedTime);
+            emptySponzaPanSequence(elapsedTime);
             break;
         case 4:
-            sequence4(elapsedTime);
+            oodApparitionSequence(elapsedTime);
             break;
         case 5:
-            sequence5(elapsedTime);
+            oodFountainSequence(elapsedTime);
             break;
         case 6:
-            sequence6(elapsedTime);
+            oodCircleElevationSequence(elapsedTime);
             break;
+        case 7:
+            oodCircleDispersionSequence(elapsedTime);
+            break;
+    }
+
+    // If the sequence is over, we move to the next one
+    if (m_endSequence) {
+        m_animationSequence++;
+        m_endSequence = false;
     }
 }
 
