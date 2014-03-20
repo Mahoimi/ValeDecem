@@ -159,13 +159,15 @@ void Project::init(){
     m_tardisPosition = glm::vec3(0,0,0);
     m_tardisRotationAxe = glm::vec3(0,1,0);
     m_tardisRotation = 0;
-    m_oodPosition = glm::vec3(-1,2,0);
 
 	// Init lights
     m_ambiantLight.init(glm::vec3(0.6f, 0.6f, 1), 0.18f);
     m_directionalLight.init(glm::vec3(0.25f, -1, 0), glm::vec3(0.4f, 0.4f, 1), .2f, 0.001f, 6, 1800);
     m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
     m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
+
+    m_oodPointLight[0].init(glm::vec3(0, -0.3f, 0), glm::vec3(1, 0, 0), 1);
+    m_oodPointLight[1].init(glm::vec3(11.4, -1.5, -4.8f), glm::vec3(0, 0, 1), 1);
 
     // Fx parameters
     m_focus = glm::vec3(5.f, 1.f, 50.f);
@@ -190,7 +192,7 @@ void Project::init(){
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
     m_gui.addParameter(&m_displayTardis, TW_TYPE_BOOL8, "display_tardis", "group='Display' label='Tardis'");
-    m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "group='Display' label='Oods'");
+    //m_gui.addParameter(&m_displayOods, TW_TYPE_BOOL8, "display_oods", "group='Display' label='Oods'");
 
     m_gui.addParameter(&m_camera.getPosition(), TW_TYPE_DIR3F, "camera_position", "group='Camera' label='Position'");
     m_gui.addParameter(&m_camera.getPhi(), TW_TYPE_FLOAT, "camera_phi", "group='Camera' label='Phi' step=1");
@@ -200,7 +202,7 @@ void Project::init(){
     m_gui.addParameter(&m_tardisRotationAxe, TW_TYPE_DIR3F, "tardis_rot_axe", "group='Tardis' label='Rotation Axe'");
     m_gui.addParameter(&m_tardisRotation, TW_TYPE_FLOAT, "tardis_rotation", "group='Tardis' label='Rotation angle'");
 
-    m_gui.addParameter(&m_oodPosition, TW_TYPE_DIR3F, "ood_position", "group='Ood' label='Position'");
+    //m_gui.addParameter(&m_oodPosition, TW_TYPE_DIR3F, "ood_position", "group='Ood' label='Position'");
 
     m_gui.addParameter(&m_ambiantLight.getColor(), TW_TYPE_COLOR3F, "ambiant_color", "group='AmbiantLight' label='Color'");
     m_gui.addParameter(&m_ambiantLight.getIntensity(), TW_TYPE_FLOAT, "ambiant_intensity", "group='AmbiantLight' label='Intensity' min=0 max=5 step=0.01");
@@ -376,17 +378,19 @@ void Project::shadowMappingPass(){
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if(m_displayOods){
-        // Reset model matrix
-        m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::translate(m_modelMatrix, m_oodPosition);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+    for(unsigned int i=0; i<m_oodsNumber; ++i){
+        if(m_displayOods[i]){
+            // Reset model matrix
+            m_modelMatrix = glm::mat4(1.f);
+            m_modelMatrix = glm::translate(m_modelMatrix,m_oodPointLight[i].getPosition());
+            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
-        // Send uniform data
-        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+            // Send uniform data
+            glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
-        // Draw
-        m_ood.render();
+            // Draw
+            m_ood.render();
+        }
     }
 
     // Unbind framebuffer
@@ -415,6 +419,7 @@ void Project::lightingByAmbiantLight(){
     m_blitPlane.render();
 }
 
+
 void Project::lightingByPointLight(){
 	// Use pointLight shaders
 	m_pointLightGLSL.m_program.use();
@@ -424,24 +429,38 @@ void Project::lightingByPointLight(){
 	glUniform1i(m_pointLightGLSL.m_normalLocation, 1);
 	glUniform1i(m_pointLightGLSL.m_depthLocation, 2);
 
+    // Bind textures : material, normal and depth
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+
 	glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(m_projectionMatrix * m_viewMatrix));
 
 	glUniform3fv(m_pointLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
 	glUniformMatrix4fv(m_pointLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-    glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisPointLight.getPosition()));
-    glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisPointLight.getColor()));
-    glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_tardisPointLight.getIntensity());
+    // RENDER TARDIS POINTLIGHT ///////////////////////////////////////////////////////////////////////////////
+    //if(m_displayTardis){
+        glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisPointLight.getPosition()));
+        glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisPointLight.getColor()));
+        glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_tardisPointLight.getIntensity());
 
-	// Bind textures : material, normal and depth
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(0));
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(1));
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, m_gbuffer.getTexture(2));
+        m_blitPlane.render();
+    //}
 
-	m_blitPlane.render();
+    // RENDER OODS POINTLIGHT //////////////////////////////////////////////////////////////////////////////////
+    for(unsigned int i = 0; i<m_oodsNumber; ++i){
+        if(m_displayOods[i]){
+            glUniform3fv(m_pointLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_oodPointLight[i].getPosition()));
+            glUniform3fv(m_pointLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_oodPointLight[i].getColor()));
+            glUniform1f(m_pointLightGLSL.m_lightIntensityLocation, m_oodPointLight[i].getIntensity());
+
+            m_blitPlane.render();
+        }
+    }
 }
 
 void Project::lightingByDirectionalLight(){
@@ -570,24 +589,26 @@ void Project::unlightPass(){
     m_cube.render();
 
     // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////
-    if(m_displayOods){
-        m_fxfbo.bindFramebufferWith(3);
+    for(unsigned int i=0; i<m_oodsNumber; ++i){
+        if(m_displayOods[i]){
+            m_fxfbo.bindFramebufferWith(3);
 
-        m_oodGLSL.m_program.use();
+            m_oodGLSL.m_program.use();
 
-        // Reset model matrix
-        m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::translate(m_modelMatrix, m_oodPosition);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+            // Reset model matrix
+            m_modelMatrix = glm::mat4(1.f);
+            m_modelMatrix = glm::translate(m_modelMatrix, m_oodPointLight[i].getPosition());
+            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
 
-        // Send uniform data
-        glUniform3fv(m_oodGLSL.m_colorLocation, 1, glm::value_ptr(glm::vec3(1,0,0)));
-        glUniformMatrix4fv(m_oodGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
-        glUniformMatrix4fv(m_oodGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
-        glUniformMatrix4fv(m_oodGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
+            // Send uniform data
+            glUniform3fv(m_oodGLSL.m_colorLocation, 1, glm::value_ptr(m_oodPointLight[i].getColor()));
+            glUniformMatrix4fv(m_oodGLSL.m_modelLocation, 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
+            glUniformMatrix4fv(m_oodGLSL.m_viewLocation, 1, GL_FALSE, glm::value_ptr(m_viewMatrix));
+            glUniformMatrix4fv(m_oodGLSL.m_projectionLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 
-        // Draw
-        m_ood.render();
+            // Draw
+            m_ood.render();
+        }
     }
 
     glDisable(GL_CULL_FACE);
@@ -834,9 +855,11 @@ void Project::playNewSequence(){
 void Project::sequence1(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
-        m_displayOods = false;
         m_displaySponza = false;
         m_displayDof = false;
+        for (unsigned i = 0; i<m_oodsNumber; i++){
+            m_displayOods[i] = false;
+        }
         m_speed = 1.f;
         m_camera.setPosition(glm::vec3(0, 16, 0));
         m_camera.setPhi(230);
@@ -871,7 +894,9 @@ void Project::sequence1(const float elapsedTime){
 void Project::sequence2(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
-        m_displayOods = false;
+        for (unsigned i = 0; i<m_oodsNumber; i++){
+            m_displayOods[i] = false;
+        }
         m_displaySponza = true;
         m_displayDof = true;
         m_camera.setPosition(glm::vec3(-13, 3.f, -0.35f));
@@ -922,7 +947,9 @@ void Project::sequence2(const float elapsedTime){
 void Project::sequence3(const float elapsedTime){
     if (!m_initSequence){
         m_displayTardis = false;
-        m_displayOods = false;
+        for (unsigned i = 0; i<m_oodsNumber; i++){
+            m_displayOods[i] = false;
+        }
         m_displaySponza = true;
         m_displayDof = true;
         m_camera.setPosition(glm::vec3(0, 1.25f, -.5f));
@@ -980,9 +1007,41 @@ void Project::sequence3(const float elapsedTime){
     if(m_camera.getPhi() < 120){
         // Init next sequence
         m_initSequence = false;
-        m_animationSequence = 3;
+        m_animationSequence = 4;
     }
 }
+
+// A ood appears at the center of the atrium
+void Project::sequence4(const float elapsedTime){
+    if (!m_initSequence){
+        m_displayTardis = false;
+
+        for (unsigned i = 0; i<m_oodsNumber; i++){
+            m_displayOods[i] = false;
+        }
+        m_displayOods[0] = true;
+        m_oodPointLight[0].setPosition(glm::vec3(0, -0.3f, 0));
+
+        m_displaySponza = true;
+        m_displayDof = false;
+        m_camera.setPosition(glm::vec3(-3, 0.1f, 1.4f));
+        m_camera.setPhi(110);
+        m_camera.setTheta(5);
+        m_focus = glm::vec3(2,1,20);
+        m_speed = 0.2f;
+        m_initSequence = true;
+    }
+
+    if(m_oodPointLight[0].getPosition().y < 0.5){
+        m_oodPointLight[0].getPosition().y += m_speed * elapsedTime;
+    }
+    else{
+        // Init next sequence
+        m_initSequence = false;
+        m_animationSequence = 5;
+    }
+}
+
 
 void Project::animation(const float elapsedTime){
 
@@ -995,6 +1054,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 3:
             sequence3(elapsedTime);
+            break;
+        case 4:
+            sequence4(elapsedTime);
             break;
     }
 }

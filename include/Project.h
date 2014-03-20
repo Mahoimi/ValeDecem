@@ -46,6 +46,7 @@ private:
     DirectionalLight m_directionalLight;
     PointLight m_tardisPointLight;
     SpotLight m_tardisSpotLight;
+    PointLight m_oodPointLight[2];
 
     // Textures
     CubemapTexture m_skyboxTexture;
@@ -224,8 +225,6 @@ private:
     float m_speed;
     float m_speed2;
 
-    glm::vec3 m_oodPosition;
-
     glm::mat4 m_sponzaMatrix;
 
     glm::mat4 m_modelMatrix;
@@ -252,9 +251,10 @@ private:
     unsigned char m_newSequence;
     bool m_initSequence;
     bool m_displayTardis;
-    bool m_displayOods;
+    bool m_displayOods[2];
     bool m_displaySponza;
     bool m_displayDof;
+    unsigned int m_oodsNumber = 2;
 
     void getInput();
     void clearBuffers();
@@ -273,6 +273,7 @@ private:
     void sequence1(const float elapsedTime);
     void sequence2(const float elapsedTime);
     void sequence3(const float elapsedTime);
+    void sequence4(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

@@ -40,6 +40,10 @@ public:
 		return m_Intensity;
 	}
 
+    void setPosition(glm::vec3 newPosition){
+        m_Position = newPosition;
+    }
+
 	~PointLight(){}
 };
 
