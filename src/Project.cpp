@@ -1625,6 +1625,7 @@ void Project::explosionSequence(const float elapsedTime){
         m_speed += 10.f*m_speed*elapsedTime;
     }
     m_camera.getPosition().x -= m_speed * elapsedTime;
+    m_tardisRotation += 10*m_speed * elapsedTime;
     if (m_tardisPointLight.getIntensity() < 11){
         m_tardisPointLight.getIntensity() += m_speed * elapsedTime;
         for (unsigned int i = 0; i < OODS_NUMBER; ++i){
@@ -1639,8 +1640,71 @@ void Project::explosionSequence(const float elapsedTime){
     }
 }
 
-void Project::animation(const float elapsedTime){
+void Project::endExplosionSequence(const float elapsedTime){
+    bool lightTurnedOff = false;
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
 
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(11);
+
+        // Oods
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+            m_displayOods[i] = true;
+            m_oodPointLight[i].setPosition(glm::vec3(0, 1, 0));
+            m_oodPointLight[i].setIntensity(11);
+        }
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-6,9.9f,0));
+        m_camera.setPhi(-270);
+        m_camera.setTheta(-53);
+
+        // Fx
+        m_focus = glm::vec3(5,1,20);
+
+        // Animation speed
+        m_speed = 200;
+        m_speed2 = 8;
+        m_speed3 = 3;
+        m_initSequence = true;
+    }
+
+    if (m_oodPointLight[0].getIntensity() > 0.1f){
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+            m_oodPointLight[i].getIntensity() -= m_speed3 * elapsedTime;
+        }
+    }
+    else lightTurnedOff = true;
+
+    if (!lightTurnedOff){
+        m_speed += 5.7f;
+    }
+    else{
+        m_speed -= 4;
+    }
+
+    m_tardisRotation += m_speed * elapsedTime;
+
+    m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
+    if (m_tardisPointLight.getIntensity() < 2) m_speed2 = 8;
+
+    if (m_speed < 0){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
+void Project::animation(const float elapsedTime){
     switch(m_animationSequence){
         case 1:
             emptySpaceSequence(elapsedTime);
@@ -1683,6 +1747,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 14:
             explosionSequence(elapsedTime);
+            break;
+        case 15:
+            endExplosionSequence(elapsedTime);
             break;
     }
 

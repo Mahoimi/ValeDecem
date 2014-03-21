@@ -292,6 +292,7 @@ private:
     void oodsToTheTardisSequence(const float elapsedTime);
     void suspensSequence(const float elapsedTime);
     void explosionSequence(const float elapsedTime);
+    void endExplosionSequence(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
