@@ -55,6 +55,7 @@ private:
     CubemapTexture m_skyboxTexture;
 	GLTexture m_diffuseTexture;
 	GLTexture m_specularTexture;
+    GLTexture m_creditsTexture;
 
     // FBO
     GBuffer m_gbuffer;
@@ -261,6 +262,7 @@ private:
     bool m_displaySponza;
     bool m_displayCameraPointLight;
     bool m_displayDof;
+    bool m_displayCredits;
 
     void getInput();
     void clearBuffers();
@@ -293,6 +295,7 @@ private:
     void suspensSequence(const float elapsedTime);
     void explosionSequence(const float elapsedTime);
     void endExplosionSequence(const float elapsedTime);
+    void creditsSequence();
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):

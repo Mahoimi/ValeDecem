@@ -14,7 +14,7 @@ void GLTexture::load(const std::string& imagepath) {
 	glGenTextures(1, &m_textureID);
 
 	// Create a loader for the image with SFML
-	sf::Image image;
+    sf::Image image;
 		
 	// Check if the image has been loaded
 	assert(image.loadFromFile(imagepath));
