@@ -195,7 +195,7 @@ void Project::init(){
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
-    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=20 step=1");
+    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=0 max=19 step=1");
     m_gui.addPlayButton("play_sequence",this,"label='Play sequence'");
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
@@ -1763,12 +1763,12 @@ void Project::endExplosionSequence(const float elapsedTime){
         }
 
         // Camera
-        m_camera.setPosition(glm::vec3(-6,9.9f,0));
+        m_camera.setPosition(glm::vec3(-1.64f,4.11f,0));
         m_camera.setPhi(-270);
         m_camera.setTheta(-53);
 
         // Fx
-        m_focus = glm::vec3(5,1,20);
+        m_focus = glm::vec3(1,1,20);
 
         // Animation speed
         m_speed = 200;
@@ -1776,7 +1776,8 @@ void Project::endExplosionSequence(const float elapsedTime){
         m_speed3 = 1.5f;
         m_initSequence = true;
     }
-
+    m_camera.moveFront(-0.5f*m_speed3 * elapsedTime);
+    m_focus.x += 0.5f*m_speed3 * elapsedTime;
     if (m_oodPointLight[0].getIntensity() > 0.1f){
         for (unsigned int i = 0; i < OODS_NUMBER; ++i){
             m_oodPointLight[i].getIntensity() -= m_speed3 * elapsedTime;
@@ -1899,9 +1900,64 @@ void Project::oodSpotlightSequence(const float elapsedTime){
     if (m_tardisSpotLight.getDirection().z > 3) m_speed2 = -2;
     if (m_tardisSpotLight.getDirection().z < -3) m_speed2 = 2;
 
-
-
     if (m_camera.getPosition().x < -12){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
+void Project::tardisTakeOffSequence(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(0);
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-5,0.5f,0));
+        m_camera.setPhi(-270);
+        m_camera.setTheta(10);
+
+        // Fx
+        m_focus = glm::vec3(3,1,20);
+
+        // Animation speed
+        m_speed = 1;
+        m_speed2 = 2;
+        m_speed3 = 8;
+        m_speed4 = 1;
+        m_initSequence = true;
+    }
+
+    if (m_speed < 800){
+        m_speed += 1;
+    }
+
+    m_tardisPointLight.getIntensity() += m_speed3 * elapsedTime;
+    if (m_tardisPointLight.getIntensity() > 8) m_speed3 = -8;
+    if (m_tardisPointLight.getIntensity() < 0.1f) m_speed3 = 8;
+
+    m_tardisRotation += m_speed * elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation, 360.f);
+
+    if (m_speed > 200){
+        if (m_speed4 < 10){
+            m_speed4 += 0.01;
+        }
+        m_tardisPosition.y += m_speed2 * elapsedTime;
+        if (m_camera.getTheta() < 70)
+        m_camera.getTheta() += 5*m_speed2 * elapsedTime;
+    }
+
+    if (m_tardisPosition.y > 30){
         // Finish sequence
         m_initSequence = false;
         m_endSequence = true;
@@ -1967,9 +2023,12 @@ void Project::animation(const float elapsedTime){
         case 17:
             oodSpotlightSequence(elapsedTime);
             break;
-        /*case 17:
+        case 18:
+            tardisTakeOffSequence(elapsedTime);
+            break;
+        case 19:
             creditsSequence();
-            break;*/
+            break;
     }
 
     // If the sequence is over, we move to the next one

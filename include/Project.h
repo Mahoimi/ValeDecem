@@ -230,6 +230,7 @@ private:
     float m_speed;
     float m_speed2;
     float m_speed3;
+    float m_speed4;
 
     glm::mat4 m_sponzaMatrix;
 
@@ -299,6 +300,7 @@ private:
     void endExplosionSequence(const float elapsedTime);
     void screwdiverSpotlightSequence(const float elapsedTime);
     void oodSpotlightSequence(const float elapsedTime);
+    void tardisTakeOffSequence(const float elapsedTime);
     void creditsSequence();
 
 public:
