@@ -248,39 +248,41 @@ void Project::init(){
 }
 
 void Project::getInput(){
-	// Define the speed of the camera
-    float speed = .25f;
+    if(m_debugMode){
+        // Define the speed of the camera
+        float speed = .25f;
 
-	// Mouse commands
-	m_mousePosition = sf::Mouse::getPosition(m_window);
+        // Mouse commands
+        m_mousePosition = sf::Mouse::getPosition(m_window);
 
-	// Move the camera according to the mouse position when the left clic is pressed
-    if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-        m_camera.rotatePhi(-0.4f*(m_mousePosition.x - m_prevMousePosition.x));
-        m_camera.rotateTheta(-0.4f*(m_mousePosition.y - m_prevMousePosition.y));
-    }
+        // Move the camera according to the mouse position when the right clic is pressed
+        if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+            m_camera.rotatePhi(-0.4f*(m_mousePosition.x - m_prevMousePosition.x));
+            m_camera.rotateTheta(-0.4f*(m_mousePosition.y - m_prevMousePosition.y));
+        }
 
-	// Replace the previous position by the actual position
-	m_prevMousePosition = m_mousePosition;
+        // Replace the previous position by the actual position
+        m_prevMousePosition = m_mousePosition;
 
-	// Keyboard commands
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-        m_camera.moveFront(speed);
-    }
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-		m_camera.moveLeft(speed);
-	}
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-        m_camera.moveFront(-speed);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-        m_camera.moveLeft(-speed);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)){
-        m_camera.moveUp(speed);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)){
-        m_camera.moveUp(-speed);
+        // Keyboard commands
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
+            m_camera.moveFront(speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+            m_camera.moveLeft(speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+            m_camera.moveFront(-speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+            m_camera.moveLeft(-speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)){
+            m_camera.moveUp(speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)){
+            m_camera.moveUp(-speed);
+        }
     }
 }
 
@@ -2078,8 +2080,8 @@ void Project::run(){
             }
         }
 
-		// Keyboard / mouse inputs
-		getInput();
+        // Keyboard / mouse inputs
+        getInput();
 
         // Update camera position/rotation and model matrices
         animation(elapsedTime);
