@@ -57,8 +57,8 @@ void main(void)
 	// Angle between the vector from the fragment to the light source (surfaceToLight) and the direction of the light
 	float cosAngleLD = dot(normalize(l), -normalize(LightDirection));
 
-	float spotAngle = radians(45.0);
-	float fallOffAngle = radians(30.0);
+        float spotAngle = radians(20.0);
+        float fallOffAngle = radians(10.0);
 
 
 	// Final color******************************************************************

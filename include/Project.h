@@ -261,13 +261,15 @@ private:
     bool m_displayOods[OODS_NUMBER];
     bool m_displaySponza;
     bool m_displayCameraPointLight;
+    bool m_displaySpotlight;
     bool m_displayDof;
     bool m_displayCredits;
 
     void getInput();
     void clearBuffers();
     void gBufferPass();
-    void shadowMappingPass();
+    void directionalLightShadowMapping();
+    void spotlightShadowMapping();
     void lightingByAmbiantLight();
 	void lightingByPointLight();
 	void lightingByDirectionalLight();
@@ -295,6 +297,7 @@ private:
     void suspensSequence(const float elapsedTime);
     void explosionSequence(const float elapsedTime);
     void endExplosionSequence(const float elapsedTime);
+    void screwdiverSpotlightSequence(const float elapsedTime);
     void creditsSequence();
 
 public:

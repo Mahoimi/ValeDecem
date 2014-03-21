@@ -50,26 +50,42 @@ public:
         m_worldToShadowMap =  MAT4F_M1_P1_TO_P0_P1 * m_ligthToShadowMap * m_worldToLight;
     }
 
-	glm::vec3 getPosition() const{
+    glm::vec3& getPosition() {
 		return m_Position;
 	}
 
-	glm::vec3 getDirection() const{
+    glm::vec3& getDirection() {
 		return m_Direction;
 	}
 
-	glm::vec3 getColor() const{
+    glm::vec3& getColor() {
 		return m_Color;
 	}
 
-	float getIntensity() const{
+    float& getIntensity() {
 		return m_Intensity;
 	}
+
+    void setPosition(glm::vec3 position) {
+        m_Position = position;
+    }
+
+    void setDirection(glm::vec3 direction) {
+        m_Direction = direction;
+    }
+
+    void setColor(glm::vec3 color) {
+        m_Color = color;
+    }
+
+    void setIntensity(float intensity) {
+        m_Intensity = intensity;
+    }
 
     glm::mat4 getWorldToLight() const{
         return m_worldToLight;
     }
-    glm::mat4 getLigthToShadowMap() const{
+    glm::mat4 getLightToShadowMap() const{
         return m_ligthToShadowMap;
     }
     glm::mat4 getWorldToShadowMap() const{

@@ -140,7 +140,7 @@ void Project::init(){
 	m_gbuffer.init(m_window.getSize().x, m_window.getSize().y);
 
     // Set ShadowMaps for shadow mapping
-    //m_shadowMapSpotLight.init(1024,1024);
+    m_shadowMapSpotLight.init(1024,1024);
     m_shadowMapDirectionnalLight.init(2048,2048);
 
     // Set framebuffer for post effects with the depth texture of the gbuffer
@@ -165,7 +165,7 @@ void Project::init(){
     m_cameraPointLight.init(m_camera.getPosition(), glm::vec3(1, 1, 1), 4);
 
     m_tardisPointLight.init(glm::vec3(0, 3, -0.7f), glm::vec3(1, 1, 1), 2);
-    m_tardisSpotLight.init(glm::vec3(-1, 5, 0), glm::vec3(1, -1, 1), glm::vec3(0.5f, 1, 1), 1);
+    m_tardisSpotLight.init(glm::vec3(-1, 1, 0), glm::vec3(1.f, 0, 0), glm::vec3(0.1f, 1, 0.1f), 1);
 
     m_oodPointLight[0].init(glm::vec3(0), glm::vec3(1, 1, .8f), 1); // yellow-white
     m_oodPointLight[1].init(glm::vec3(0), glm::vec3(.6f, 1, .6f), 1); // green
@@ -195,7 +195,7 @@ void Project::init(){
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
-    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=15 step=1");
+    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=20 step=1");
     m_gui.addPlayButton("play_sequence",this,"label='Play sequence'");
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
@@ -235,6 +235,11 @@ void Project::init(){
     m_gui.addParameter(&m_tardisPointLight.getPosition(), TW_TYPE_DIR3F, "tardis_pl_position", "group='TardisPointLight' label='Position'");
     m_gui.addParameter(&m_tardisPointLight.getColor(), TW_TYPE_COLOR3F, "tardis_pl_color", "group='TardisPointLight' label='Color'");
     m_gui.addParameter(&m_tardisPointLight.getIntensity(), TW_TYPE_FLOAT, "tardis_pl_intensity", "group='TardisPointLight' label='Intensity' min=0 max=5 step=0.01");
+
+    m_gui.addParameter(&m_tardisSpotLight.getPosition(), TW_TYPE_DIR3F, "tardis_sl_position", "group='TardisSpotLight' label='Position'");
+    m_gui.addParameter(&m_tardisSpotLight.getDirection(), TW_TYPE_DIR3F, "tardis_sl_dir", "group='TardisSpotLight' label='Direction'");
+    m_gui.addParameter(&m_tardisSpotLight.getColor(), TW_TYPE_COLOR3F, "tardis_sl_color", "group='TardisSpotLight' label='Color'");
+    m_gui.addParameter(&m_tardisSpotLight.getIntensity(), TW_TYPE_FLOAT, "tardis_sl_intensity", "group='TardisSpotLight' label='Intensity' min=0 max=5 step=0.01");
 
     m_gui.addParameter(&m_focus.x, TW_TYPE_FLOAT, "focus_plane", "group='DepthOfField' label='Focus plane' min=0 max=100 step=0.1");
     m_gui.addParameter(&m_focus.y, TW_TYPE_FLOAT, "focus_near", "group='DepthOfField' label='Focus near' min=0 max=100 step=0.1");
@@ -353,72 +358,145 @@ void Project::gBufferPass(){
     glDisable(GL_DEPTH_TEST);
 }
 
-void Project::shadowMappingPass(){
-    // Enable Depth test
-    glEnable(GL_DEPTH_TEST);
+void Project::directionalLightShadowMapping(){
+    if (m_displaySponza){
+        // Enable Depth test
+        glEnable(GL_DEPTH_TEST);
 
-    // Use gbuffer shaders
-    m_shadowGLSL.m_program.use();
+        // Use gbuffer shaders
+        m_shadowGLSL.m_program.use();
 
-    // Bind fbo
-    m_shadowMapDirectionnalLight.bindFramebuffer();
+        // Bind fbo
+        m_shadowMapDirectionnalLight.bindFramebuffer();
 
-    // Set Viewport
-    glViewport(0, 0, 2048, 2048);
-
-    // Send uniform data
-    glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
-    glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
-
-    // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
-
-    if(m_displaySponza){
-        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_sponzaMatrix));
-
-        // Draw
-        m_sponza.render();
-    }
-
-    // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
-    if(m_displayTardis){
-        // Reset model matrix
-        m_modelMatrix = glm::mat4(1.f);
-        m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
-        m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
-        m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
-
+        // Set Viewport
+        glViewport(0, 0, 2048, 2048);
 
         // Send uniform data
-        glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+        glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_directionalLight.getLightToShadowMap()));
+        glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_directionalLight.getWorldToLight()));
 
-        // Draw
-        m_tardis.render();
-    }
+        // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+        if(m_displaySponza){
+            glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_sponzaMatrix));
 
-    // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
+            // Draw
+            m_sponza.render();
+        }
 
-    for(unsigned int i=0; i<OODS_NUMBER; ++i){
-        if(m_displayOods[i]){
+        // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
+        if(m_displayTardis){
             // Reset model matrix
             m_modelMatrix = glm::mat4(1.f);
-            m_modelMatrix = glm::translate(m_modelMatrix,m_oodPointLight[i].getPosition());
-            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+            m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+            m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
 
             // Send uniform data
             glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
 
             // Draw
-            m_ood.render();
+            m_tardis.render();
         }
+
+        // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        for(unsigned int i=0; i<OODS_NUMBER; ++i){
+            if(m_displayOods[i]){
+                // Reset model matrix
+                m_modelMatrix = glm::mat4(1.f);
+                m_modelMatrix = glm::translate(m_modelMatrix,m_oodPointLight[i].getPosition());
+                m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+
+                // Send uniform data
+                glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+                // Draw
+                m_ood.render();
+            }
+        }
+
+        // Unbind framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // Disable Depth test
+        glDisable(GL_DEPTH_TEST);
+
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
     }
+}
 
-    // Unbind framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+void Project::spotlightShadowMapping(){
+    if (m_displaySpotlight){
+        // Enable Depth test
+        glEnable(GL_DEPTH_TEST);
 
-    // Disable Depth test
-    glDisable(GL_DEPTH_TEST);
+        // Use gbuffer shaders
+        m_shadowGLSL.m_program.use();
 
-    glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+        // Bind fbo
+        m_shadowMapSpotLight.bindFramebuffer();
+
+        // Set Viewport
+        glViewport(0, 0, 1024, 1024);
+
+        // Update shadowmatrices
+        m_tardisSpotLight.setShadowMatrices();
+
+        // Send uniform data
+        glUniformMatrix4fv(m_shadowGLSL.m_projectionLocation, 1, 0, glm::value_ptr(m_tardisSpotLight.getLightToShadowMap()));
+        glUniformMatrix4fv(m_shadowGLSL.m_viewLocation, 1, 0, glm::value_ptr(m_tardisSpotLight.getWorldToLight()));
+
+        // RENDER SPONZA ////////////////////////////////////////////////////////////////////////////////////////////
+        if(m_displaySponza){
+            glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_sponzaMatrix));
+
+            // Draw
+            m_sponza.render();
+        }
+
+        // RENDER TARDIS ////////////////////////////////////////////////////////////////////////////////////////////
+        if(m_displayTardis){
+            // Reset model matrix
+            m_modelMatrix = glm::mat4(1.f);
+            m_modelMatrix = glm::translate(m_modelMatrix, m_tardisPosition);
+            m_modelMatrix = glm::rotate(m_modelMatrix, m_tardisRotation, m_tardisRotationAxe);
+            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.1f));
+
+
+            // Send uniform data
+            glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+            // Draw
+            m_tardis.render();
+        }
+
+        // RENDER OOD ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        for(unsigned int i=0; i<OODS_NUMBER; ++i){
+            if(m_displayOods[i]){
+                // Reset model matrix
+                m_modelMatrix = glm::mat4(1.f);
+                m_modelMatrix = glm::translate(m_modelMatrix,m_oodPointLight[i].getPosition());
+                m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(0.25f));
+
+                // Send uniform data
+                glUniformMatrix4fv(m_shadowGLSL.m_modelLocation, 1, 0, glm::value_ptr(m_modelMatrix));
+
+                // Draw
+                m_ood.render();
+            }
+        }
+
+        // Unbind framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // Disable Depth test
+        glDisable(GL_DEPTH_TEST);
+
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+    }
 }
 
 void Project::lightingByAmbiantLight(){
@@ -537,7 +615,7 @@ void Project::lightingByDirectionalLight(){
 }
 
 void Project::lightingBySpotLight(){
-    /*
+
     // Use spotLight shaders
 	m_spotLightGLSL.m_program.use();
 
@@ -553,11 +631,11 @@ void Project::lightingBySpotLight(){
 	glUniform3fv(m_spotLightGLSL.m_cameraPositionLocation, 1, glm::value_ptr(m_camera.getPosition()));
 	glUniformMatrix4fv(m_spotLightGLSL.m_inverseViewProjectionLocation, 1, 0, glm::value_ptr(inverseViewProjection));
 
-	glUniform3fv(m_spotLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(m_spotLight.getDirection()));
-	glUniform3fv(m_spotLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_spotLight.getPosition()));
-	glUniform3fv(m_spotLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_spotLight.getColor()));
-	glUniform1f(m_spotLightGLSL.m_lightIntensityLocation, m_spotLight.getIntensity());
-    glUniformMatrix4fv(m_spotLightGLSL.m_lightProjectionLocation, 1, 0, glm::value_ptr(m_spotLight.getWorldToShadowMap()));
+    glUniform3fv(m_spotLightGLSL.m_lightDirectionLocation, 1, glm::value_ptr(m_tardisSpotLight.getDirection()));
+    glUniform3fv(m_spotLightGLSL.m_lightPositionLocation, 1, glm::value_ptr(m_tardisSpotLight.getPosition()));
+    glUniform3fv(m_spotLightGLSL.m_lightColorLocation, 1, glm::value_ptr(m_tardisSpotLight.getColor()));
+    glUniform1f(m_spotLightGLSL.m_lightIntensityLocation, m_tardisSpotLight.getIntensity());
+    glUniformMatrix4fv(m_spotLightGLSL.m_lightProjectionLocation, 1, 0, glm::value_ptr(m_tardisSpotLight.getWorldToShadowMap()));
     glUniform1f(m_spotLightGLSL.m_shadowBiasLocation, 0.001f);
 
 
@@ -572,7 +650,7 @@ void Project::lightingBySpotLight(){
     glBindTexture(GL_TEXTURE_2D, m_shadowMapSpotLight.getTexture());
 
     m_blitPlane.render();
-    */
+
 }
 
 void Project::lightingPass(){
@@ -587,7 +665,7 @@ void Project::lightingPass(){
 
 
     lightingByPointLight();
-   // lightingBySpotLight();
+    if (m_displaySpotlight) lightingBySpotLight();
 
     glDisable(GL_BLEND);
 
@@ -847,7 +925,7 @@ void Project::blitPass(){
 
     // Bind shadowMap texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_shadowMapDirectionnalLight.getTexture());
+    glBindTexture(GL_TEXTURE_2D, m_shadowMapSpotLight.getTexture());
 
     // Render plane
     m_blitPlane.render();
@@ -909,6 +987,7 @@ void Project::setAllDisplay(bool b){
         m_displayOods[i] = b;
     m_displayTardis = b;
     m_displaySponza = b;
+    m_displaySpotlight = b;
     m_displayCameraPointLight = b;
     m_displayDof = b;
     m_displayCredits = b;
@@ -1333,6 +1412,7 @@ void Project::tardisSpaceSequence(const float elapsedTime){
         m_camera.getPosition().x += m_speed * elapsedTime;
         m_cameraPointLight.setPosition(m_camera.getPosition());
         m_tardisRotation += 12.5f * m_speed * elapsedTime;
+        m_tardisRotation = fmod(m_tardisRotation,360.0);
     }
 
     else{
@@ -1389,6 +1469,7 @@ void Project::travellingOnTheRoofSequence(const float elapsedTime){
     m_tardisPosition.x -= 2.f*m_speed*elapsedTime;
     m_tardisPosition.y -= 0.5f*m_speed*elapsedTime;
     m_tardisRotation += 100*elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation,360.0);
 
     if (m_tardisPosition.x <= 0){
         // Finish sequence
@@ -1440,6 +1521,7 @@ void Project::tardisLandingWingSequence(const float elapsedTime){
     m_camera.getPosition().y -= 0.5f*m_speed * elapsedTime;
     m_tardisPosition.y -= m_speed * elapsedTime;
     m_tardisRotation += 30*m_speed * elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation,360.0);
     m_oodPointLight[1].getPosition().x += m_speed * elapsedTime;
     m_oodPointLight[2].getPosition().x -= m_speed * elapsedTime;
 
@@ -1484,6 +1566,7 @@ void Project::tardisLandingAttriumSequence(const float elapsedTime){
 
     m_tardisPosition.y -= m_speed * elapsedTime;
     m_tardisRotation += 30*m_speed * elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation,360.0);
     m_camera.getTheta() -= 7*m_speed * elapsedTime;
 
     if (m_tardisPosition.y < 0){
@@ -1642,6 +1725,7 @@ void Project::explosionSequence(const float elapsedTime){
     }
     m_camera.getPosition().x -= m_speed * elapsedTime;
     m_tardisRotation += 10*m_speed * elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation,360.0);
     if (m_tardisPointLight.getIntensity() < 11){
         m_tardisPointLight.getIntensity() += m_speed * elapsedTime;
         for (unsigned int i = 0; i < OODS_NUMBER; ++i){
@@ -1689,7 +1773,7 @@ void Project::endExplosionSequence(const float elapsedTime){
         // Animation speed
         m_speed = 200;
         m_speed2 = 8;
-        m_speed3 = 3;
+        m_speed3 = 1.5f;
         m_initSequence = true;
     }
 
@@ -1701,19 +1785,68 @@ void Project::endExplosionSequence(const float elapsedTime){
     else lightTurnedOff = true;
 
     if (!lightTurnedOff){
-        m_speed += 5.7f;
+        m_speed += 5;
     }
     else{
-        m_speed -= 4;
+        m_speed -= 5;
     }
 
     m_tardisRotation += m_speed * elapsedTime;
+    m_tardisRotation = fmod(m_tardisRotation,360.0);
 
     m_tardisPointLight.getIntensity() += m_speed2 * elapsedTime;
     if (m_tardisPointLight.getIntensity() > 8) m_speed2 = -8;
     if (m_tardisPointLight.getIntensity() < 2) m_speed2 = 8;
 
-    if (m_speed < 0){
+    if (m_speed < 150){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
+void Project::screwdiverSpotlightSequence(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+        m_displayCameraPointLight = true;
+        m_displaySpotlight = true;
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(0);
+
+        m_tardisSpotLight.setPosition(glm::vec3(-2,1,0));
+        m_tardisSpotLight.setDirection(glm::vec3(-1,0,0));
+        m_tardisSpotLight.setIntensity(0);
+
+        // Camera
+        m_camera.setPosition(glm::vec3(5,2.5f,-2));
+        m_cameraPointLight.setIntensity(2);
+        m_camera.setPhi(-85);
+        m_camera.setTheta(-10);
+
+        // Fx
+        m_focus = glm::vec3(5,1,20);
+
+        // Animation speed
+        m_speed = 1;
+        m_initSequence = true;
+    }
+
+    m_camera.moveFront(m_speed * elapsedTime);
+    m_cameraPointLight.setPosition(m_camera.getPosition());
+
+    if (m_camera.getPosition().x < 4){
+        m_tardisSpotLight.getIntensity() += 0.1f * m_speed * elapsedTime;
+    }
+
+    if (m_camera.getPosition().x < 0){
         // Finish sequence
         m_initSequence = false;
         m_endSequence = true;
@@ -1774,8 +1907,11 @@ void Project::animation(const float elapsedTime){
             endExplosionSequence(elapsedTime);
             break;
         case 16:
-            creditsSequence();
+            screwdiverSpotlightSequence(elapsedTime);
             break;
+        /*case 17:
+            creditsSequence();
+            break;*/
     }
 
     // If the sequence is over, we move to the next one
@@ -1841,7 +1977,9 @@ void Project::run(){
         gBufferPass();
 
         // Create the lights shadow maps
-        shadowMappingPass();
+        directionalLightShadowMapping();
+        spotlightShadowMapping();
+
 
 		// Use the textures in the gbuffer to calculate the illumination
         lightingPass();
