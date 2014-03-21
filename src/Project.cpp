@@ -1853,6 +1853,61 @@ void Project::screwdiverSpotlightSequence(const float elapsedTime){
     }
 }
 
+void Project::oodSpotlightSequence(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+        m_displayCameraPointLight = true;
+        m_displaySpotlight = true;
+
+        // Ood
+        m_displayOods[1] = true;
+        m_oodPointLight[1].setPosition(glm::vec3(0,1.5,0));
+        m_oodPointLight[1].setIntensity(0);
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(0);
+
+        m_tardisSpotLight.setPosition(glm::vec3(-2,1,0));
+        m_tardisSpotLight.setDirection(glm::vec3(-1,-0.5f,0));
+        m_tardisSpotLight.setIntensity(1);
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-7,1.6f,-1));
+        m_cameraPointLight.setIntensity(2);
+        m_camera.setPhi(90);
+        m_camera.setTheta(10);
+
+        // Fx
+        m_focus = glm::vec3(5,1,20);
+
+        // Animation speed
+        m_speed = 1;
+        m_speed2 = 2;
+        m_initSequence = true;
+    }
+
+    m_camera.moveFront(-m_speed * elapsedTime);
+
+    m_tardisSpotLight.getDirection().z += m_speed2 * elapsedTime;
+    if (m_tardisSpotLight.getDirection().z > 3) m_speed2 = -2;
+    if (m_tardisSpotLight.getDirection().z < -3) m_speed2 = 2;
+
+
+
+    if (m_camera.getPosition().x < -12){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
 void Project::creditsSequence(){
     // Display
     setAllDisplay(false);
@@ -1908,6 +1963,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 16:
             screwdiverSpotlightSequence(elapsedTime);
+            break;
+        case 17:
+            oodSpotlightSequence(elapsedTime);
             break;
         /*case 17:
             creditsSequence();

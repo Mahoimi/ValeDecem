@@ -298,6 +298,7 @@ private:
     void explosionSequence(const float elapsedTime);
     void endExplosionSequence(const float elapsedTime);
     void screwdiverSpotlightSequence(const float elapsedTime);
+    void oodSpotlightSequence(const float elapsedTime);
     void creditsSequence();
 
 public:
