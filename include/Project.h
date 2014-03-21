@@ -291,6 +291,7 @@ private:
     void tardisLandingAttriumSequence(const float elapsedTime);
     void oodsToTheTardisSequence(const float elapsedTime);
     void suspensSequence(const float elapsedTime);
+    void explosionSequence(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
