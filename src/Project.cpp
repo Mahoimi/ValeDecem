@@ -17,7 +17,7 @@ void Project::init(){
 	// Set projection matrix
     m_projectionMatrix = glm::perspective(45.f, m_window.getSize().x / (float) m_window.getSize().y, 0.1f, 1000.f);
 
-	// Load Shaders
+    // Load Shaders
     m_skyboxGLSL.m_program.load("../../shaders/skybox.vs.glsl", "../../shaders/skybox.fs.glsl");
     m_gbufferGLSL.m_program.load("../../shaders/gbuffer.vs.glsl", "../../shaders/gbuffer.fs.glsl");
     m_oodGLSL.m_program.load("../../shaders/ood.vs.glsl", "../../shaders/ood.fs.glsl");
@@ -32,7 +32,7 @@ void Project::init(){
     m_cocGLSL.m_program.load("../../shaders/blit.vs.glsl","../../shaders/coc.fs.glsl");
     m_dofGLSL.m_program.load("../../shaders/blit.vs.glsl","../../shaders/dof.fs.glsl");
 
-	// Set uniform locations
+    // Set uniform locations
     m_skyboxGLSL.m_modelLocation = m_skyboxGLSL.m_program.getUniformLocation("Model");
     m_skyboxGLSL.m_viewLocation = m_skyboxGLSL.m_program.getUniformLocation("View");
     m_skyboxGLSL.m_projectionLocation = m_skyboxGLSL.m_program.getUniformLocation("Projection");
@@ -125,8 +125,7 @@ void Project::init(){
     m_dofGLSL.m_blurLocation = m_dofGLSL.m_program.getUniformLocation("Blur");
 
 	// Load texture
-    m_diffuseTexture.load("../../assets/textures/spnza_bricks_a_diff.tga");
-    m_specularTexture.load("../../assets/textures/spnza_bricks_a_spec.tga");
+    m_creditsTexture.load("../../assets/textures/credits.png");
 
     m_skyboxTexture.load("../../assets/textures/skybox/",
                          "spacebox_right.png",
@@ -779,6 +778,22 @@ void Project::fxPass(){
 
         glDisable(GL_BLEND);
     }
+    if (m_displayCredits){
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, m_window.getSize().x, m_window.getSize().y);
+
+        // Use blit shaders
+        m_blitGLSL.m_program.use();
+
+        // Send uniform value
+        glUniform1i(m_blitGLSL.m_textureLocation, 0);
+
+        // Bind color texture
+        m_creditsTexture.bind(GL_TEXTURE0);
+
+        m_blitPlane.render();
+    }
     // Debind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -896,6 +911,7 @@ void Project::setAllDisplay(bool b){
     m_displaySponza = b;
     m_displayCameraPointLight = b;
     m_displayDof = b;
+    m_displayCredits = b;
 }
 
 // Empty space view
@@ -1587,6 +1603,12 @@ void Project::suspensSequence(const float elapsedTime){
     }
 }
 
+void Project::creditsSequence(){
+    // Display
+    setAllDisplay(false);
+    m_displayCredits = true;
+}
+
 void Project::animation(const float elapsedTime){
 
     switch(m_animationSequence){
@@ -1628,6 +1650,9 @@ void Project::animation(const float elapsedTime){
             break;
         case 13:
             suspensSequence(elapsedTime);
+            break;
+        case 14:
+            creditsSequence();
             break;
     }
 
