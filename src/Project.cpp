@@ -196,7 +196,7 @@ void Project::init(){
 
     m_gui.addParameter(&m_fps, TW_TYPE_FLOAT, "fps_count", "label=FPS",false);
 
-    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=13 step=1");
+    m_gui.addParameter(&m_newSequence, TW_TYPE_CHAR, "new_sequence", "label='Selected sequence' min=1 max=15 step=1");
     m_gui.addPlayButton("play_sequence",this,"label='Play sequence'");
 
     m_gui.addParameter(&m_displaySponza, TW_TYPE_BOOL8, "display_sponza", "group='Display' label='Sponza'");
@@ -1095,6 +1095,7 @@ void Project::oodApparitionSequence(const float elapsedTime){
 
         // Oods
         m_oodPointLight[0].setPosition(glm::vec3(0, -0.3f, 0));
+        m_oodPointLight[0].setIntensity(1);
 
         // Camera
         m_camera.setPosition(glm::vec3(-3, 0.1f, 1.4f));
@@ -1134,7 +1135,9 @@ void Project::oodFountainSequence(const float elapsedTime){
 
         // Oods
         m_oodPointLight[1].setPosition(glm::vec3(11.2f, 1.f, 3.90f));
+        m_oodPointLight[1].setIntensity(1);
         m_oodPointLight[2].setPosition(glm::vec3(11.4f, 0.2f, -4.8f));
+        m_oodPointLight[2].setIntensity(1);
 
         // Camera
         m_camera.setPosition(glm::vec3(12.5, 2.2f, -6.3));
@@ -1172,6 +1175,8 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
 
         // Oods
         m_oodPointLight[0].setPosition(glm::vec3(0, 2, 0));
+        m_oodPointLight[0].setIntensity(1);
+
         glm::mat4 centerMatrix = glm::translate(glm::mat4(1), glm::vec3(0, -3, 0));
 
         for (unsigned int i = 3; i < 9; ++i){
@@ -1183,6 +1188,7 @@ void Project::oodCircleElevationSequence(const float elapsedTime){
             glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
 
             m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y+i*0.5f, oodPosition.z));
+            m_oodPointLight[i].setIntensity(1);
         }
 
         // Camera
@@ -1230,10 +1236,12 @@ void Project::oodCircleDispersionSequence(const float elapsedTime){
 
         // Oods
         m_oodPointLight[0].setPosition(glm::vec3(0, 4, 0));
+        m_oodPointLight[0].setIntensity(1);
         m_dispersionRadius = glm::vec3(0,0,1);
 
         for (unsigned int i = 3; i < 9; ++i){
             m_displayOods[i] = true;
+            m_oodPointLight[i].setIntensity(1);
         }
 
         // Camera
@@ -1318,7 +1326,7 @@ void Project::tardisSpaceSequence(const float elapsedTime){
     }
 }
 
-void Project::travellingCameraWithTardis(const float elapsedTime){
+void Project::travellingOnTheRoofSequence(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
@@ -1330,6 +1338,7 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
 
         // Ood
         m_oodPointLight[0].setPosition(glm::vec3(0, 8, 0));
+        m_oodPointLight[0].setIntensity(1);
 
         // Tardis
         m_tardisPosition = glm::vec3(20,17,0);
@@ -1372,7 +1381,7 @@ void Project::travellingCameraWithTardis(const float elapsedTime){
     }
 }
 
-void Project::tardisLandingFromSponzaWing(const float elapsedTime){
+void Project::tardisLandingWingSequence(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
@@ -1384,7 +1393,9 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
 
         // Ood
         m_oodPointLight[1].setPosition(glm::vec3(-4, 6, 3.5));
+        m_oodPointLight[1].setIntensity(1);
         m_oodPointLight[2].setPosition(glm::vec3(4, 6, -5));
+        m_oodPointLight[2].setIntensity(1);
 
         // Tardis
         m_tardisPosition = glm::vec3(0,10,0);
@@ -1423,7 +1434,7 @@ void Project::tardisLandingFromSponzaWing(const float elapsedTime){
     }
 }
 
-void Project::tardisLandingFromAttrium(const float elapsedTime){
+void Project::tardisLandingAttriumSequence(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
@@ -1466,7 +1477,7 @@ void Project::tardisLandingFromAttrium(const float elapsedTime){
     }
 }
 
-void Project::oodsMultiplication(const float elapsedTime){
+void Project::oodsToTheTardisSequence(const float elapsedTime){
     if (!m_initSequence){
         // Display
         setAllDisplay(false);
@@ -1486,6 +1497,7 @@ void Project::oodsMultiplication(const float elapsedTime){
             glm::vec4 oodPosition = radiusMatrix * glm::vec4(0,0,0,1);
 
             m_oodPointLight[i].setPosition(glm::vec3(oodPosition.x, oodPosition.y, oodPosition.z));
+            m_oodPointLight[i].setIntensity(1);
         }
 
         // Tardis
@@ -1525,6 +1537,56 @@ void Project::oodsMultiplication(const float elapsedTime){
     }
 }
 
+void Project::suspensSequence(const float elapsedTime){
+    if (!m_initSequence){
+        // Display
+        setAllDisplay(false);
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i)
+            m_displayOods[i] = true;
+        m_displayTardis = true;
+        m_displaySponza = true;
+        m_displayDof = true;
+
+        // Oods
+        for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+            m_oodPointLight[i].setPosition(glm::vec3(0, 1, 0));
+            m_oodPointLight[i].setIntensity(1);
+        }
+
+        // Tardis
+        m_tardisPosition = glm::vec3(0,0,0);
+        m_tardisRotationAxe = glm::vec3(0, 1, 0);
+        m_tardisRotation = 246;
+        m_tardisPointLight.setIntensity(0.f);
+
+        // Camera
+        m_camera.setPosition(glm::vec3(-3,0.5f,-1.3f));
+        m_camera.setPhi(-280);
+        m_camera.setTheta(15);
+
+        // Fx
+        m_focus = glm::vec3(1,1,20);
+
+        // Animation speed
+        m_speed = 0.3f;
+        m_initSequence = true;
+    }
+
+    m_focus.x += m_speed * elapsedTime;
+    m_camera.getPosition().x -= m_speed * elapsedTime;
+
+    for (unsigned int i = 0; i < OODS_NUMBER; ++i){
+        if (m_oodPointLight[i].getIntensity() > 0.01f)
+            m_oodPointLight[i].getIntensity() -= 2*m_speed * elapsedTime;
+    }
+
+    if (m_camera.getPosition().x < -4.8){
+        // Finish sequence
+        m_initSequence = false;
+        m_endSequence = true;
+    }
+}
+
 void Project::animation(const float elapsedTime){
 
     switch(m_animationSequence){
@@ -1553,16 +1615,19 @@ void Project::animation(const float elapsedTime){
             tardisSpaceSequence(elapsedTime);
             break;
         case 9:
-            travellingCameraWithTardis(elapsedTime);
+            travellingOnTheRoofSequence(elapsedTime);
             break;
         case 10:
-            tardisLandingFromSponzaWing(elapsedTime);
+            tardisLandingWingSequence(elapsedTime);
             break;
         case 11:
-            tardisLandingFromAttrium(elapsedTime);
+            tardisLandingAttriumSequence(elapsedTime);
             break;
         case 12:
-            oodsMultiplication(elapsedTime);
+            oodsToTheTardisSequence(elapsedTime);
+            break;
+        case 13:
+            suspensSequence(elapsedTime);
             break;
     }
 

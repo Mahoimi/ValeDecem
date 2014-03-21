@@ -286,10 +286,11 @@ private:
     void oodCircleElevationSequence(const float elapsedTime);
     void oodCircleDispersionSequence(const float elapsedTime);
     void tardisSpaceSequence(const float elapsedTime);
-    void travellingCameraWithTardis(const float elapsedTime);
-    void tardisLandingFromSponzaWing(const float elapsedTime);
-    void tardisLandingFromAttrium(const float elapsedTime);
-    void oodsMultiplication(const float elapsedTime);
+    void travellingOnTheRoofSequence(const float elapsedTime);
+    void tardisLandingWingSequence(const float elapsedTime);
+    void tardisLandingAttriumSequence(const float elapsedTime);
+    void oodsToTheTardisSequence(const float elapsedTime);
+    void suspensSequence(const float elapsedTime);
 
 public:
 	Project(unsigned int width, unsigned int height, const std::string& windowtitle):
